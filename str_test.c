@@ -107,7 +107,7 @@ void test_str_cmp(void)
 static
 void test_str_acquire(void)
 {
-	const str s = str_acquire(strdup("ZZZ"), (size_t)-1);
+	const str s = str_acquire(strdup("ZZZ"));
 
 	assert(str_is_alloc(s));
 	assert(str_eq(s, str_lit("ZZZ")));
@@ -127,7 +127,7 @@ void test_str_cat(void)
 	assert(str_is_alloc(s));
 	assert(strcmp(str_ptr(s), "AAABBBCCC") == 0);	// test null terminator
 
-	str_cat_args(&s);	// this simply clears the target string
+	str_cat_args(&s, str_null, str_null, str_null);	// this simply clears the target string
 
 	assert(str_is_empty(s));
 	assert(str_is_ref(s));
@@ -154,6 +154,21 @@ void test_str_join(void)
 	passed;
 }
 
+static
+void test_composition(void)
+{
+	str s = str_lit(", ");
+
+	str_join_args(&s, s, str_lit("Here"), str_lit("there"), str_lit("and everywhere"));
+	str_cat_args(&s, s, str_lit("..."));
+
+	assert(str_eq(s, str_lit("Here, there, and everywhere...")));
+	assert(str_ptr(s)[str_len(s)] == 0);
+
+	str_free(s);
+	passed;
+}
+
 int main(void)
 {
 	// tests
@@ -166,6 +181,7 @@ int main(void)
 	test_str_acquire();
 	test_str_cat();
 	test_str_join();
+	test_composition();
 
 	return (puts("OK.") >= 0) ? 0 : 1;
 }

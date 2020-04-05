@@ -4,7 +4,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 
 // memory allocation wrappers
 static __attribute__((malloc))
@@ -66,27 +65,6 @@ str str_dup(const str s)
 	return (str){ p, (n << 1) | 1 };
 }
 
-// string reference from pointer
-str _str_ref_form_ptr(const char* const s)
-{
-	const size_t n = s ? strlen(s) : 0;
-
-	return (n > 0) ? ((str){ s, n << 1 }) : str_null;
-}
-
-// take ownership of the given string s of n chars
-str str_acquire(const char* const s, size_t n)
-{
-	if(!s)
-		return str_null;
-
-	if(n == (size_t)-1)	// special value to trigger the string length calculation
-		n = strlen(s);
-
-	// take ownership even if the string is empty, as its memory is still allocated.
-	return (str){ s, (n << 1) | 1 };
-}
-
 // compatibility
 #ifndef _GNU_SOURCE
 static inline
@@ -122,17 +100,6 @@ bool simple_cat(str* const dest, const str* const src, const size_t n)
 	return false;
 }
 
-static
-size_t sum_str_len(const str* const src, const size_t n)
-{
-	size_t num = 0;
-
-	for(size_t i = 0; i < n; ++i)
-		num += str_len(src[i]);
-
-	return num;
-}
-
 // concatenate strings
 void str_cat(str* const dest, const str* const src, const size_t n)
 {
@@ -141,7 +108,16 @@ void str_cat(str* const dest, const str* const src, const size_t n)
 		return;
 
 	// calculate total length
-	const size_t num = sum_str_len(src, n);
+	size_t num = 0;
+
+	for(size_t i = 0; i < n; ++i)
+		num += str_len(src[i]);
+
+	if(num == 0)
+	{
+		str_clear(dest);
+		return;
+	}
 
 	// allocate
 	char* const buff = mem_alloc(num + 1);
@@ -154,7 +130,7 @@ void str_cat(str* const dest, const str* const src, const size_t n)
 
 	// null-terminate and assign
 	*p = 0;
-	str_assign(dest, str_acquire(buff, num));
+	str_assign(dest, str_acquire_range(buff, num));
 }
 
 // join strings
@@ -171,7 +147,18 @@ void str_join(str* const dest, const str sep, const str* const src, const size_t
 		return;
 
 	// calculate total length
-	const size_t num = sum_str_len(src, n) + str_len(sep) * (n - 1);
+	size_t num = 0;
+
+	for(size_t i = 0; i < n; ++i)
+		num += str_len(src[i]);
+
+	if(num == 0)
+	{
+		str_clear(dest);
+		return;
+	}
+
+	num += str_len(sep) * (n - 1);
 
 	// allocate
 	char* const buff = mem_alloc(num + 1);
@@ -184,5 +171,5 @@ void str_join(str* const dest, const str sep, const str* const src, const size_t
 
 	// null-terminate and assign
 	*p = 0;
-	str_assign(dest, str_acquire(buff, num));
+	str_assign(dest, str_acquire_range(buff, num));
 }

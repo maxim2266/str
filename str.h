@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,13 +92,24 @@ void str_join(str* const dest, const str sep, const str* const src, const size_t
 // string reference from a string literal
 #define str_lit(s) ((str){ "" s, (sizeof(s) - 1) << 1 })
 
-// allocated copy of the given string
+// make a copy of the given string
 str str_dup(const str s);
 
 static inline
 str _str_ref(const str s) { return (str){ s.ptr, s.info & ~(size_t)1 }; }
 
-str _str_ref_form_ptr(const char* const s);
+// create a reference to the given range of chars
+static inline
+str str_ref_range(const char* const s, const size_t n)
+{
+	return (s && n > 0) ? ((str){ s, n << 1 }) : str_null;
+}
+
+static inline
+str _str_ref_form_ptr(const char* const s)
+{
+	return s ? str_ref_range(s, strlen(s)) : str_null;
+}
 
 // string reference from anything
 #define str_ref(s) _Generic((s),	\
@@ -105,9 +117,20 @@ str _str_ref_form_ptr(const char* const s);
 	char*:	_str_ref_form_ptr	\
 )(s)
 
-// take ownership of the given string s of n chars;
-// totally unsafe, use at your own risk.
-str str_acquire(const char* const s, size_t n);
+// take ownership of the given range of bytes; totally unsafe, use at your own risk.
+static inline
+str str_acquire_range(const char* const s, size_t n)
+{
+	// take ownership even if the string is empty, because its memory is still allocated
+	return s ? ((str){ s, (n << 1) | 1 }) : str_null;
+}
+
+// take ownership of the given string; totally unsafe, use at your own risk
+static inline
+str str_acquire(const char* const s)
+{
+	return s ? str_acquire_range(s, strlen(s)) : str_null;
+}
 
 #ifdef __cplusplus
 }

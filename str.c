@@ -59,19 +59,48 @@ int str_cmp(const str s1, const str s2)
 	return (n1 < n2) ? -1 : 1;
 }
 
+// create a reference to the given range of chars
+str str_ref_range(const char* const s, const size_t n)
+{
+	return (s && n > 0) ? ((str){ s, _ref_info(n) }) : str_null;
+}
+
+str _str_ref_form_ptr(const char* const s)
+{
+	return s ? str_ref_range(s, strlen(s)) : str_null;
+}
+
+// take ownership of the given range of bytes
+void str_acquire_range(str* const dest, const char* const s, size_t n)
+{
+	// take ownership even if the string is empty, because its memory is still allocated
+	str_assign(dest, s ? ((str){ s, _owner_info(n) }) : str_null);
+}
+
+// take ownership of the given string
+void str_acquire(str* const dest, const char* const s)
+{
+	if(s)
+		str_acquire_range(dest, s, strlen(s));
+	else
+		str_clear(dest);
+}
+
 // allocate a copy of the given string
-str str_dup(const str s)
+void str_dup(str* const dest, const str s)
 {
 	const size_t n = str_len(s);
 
 	if(n == 0)
-		return str_null;
+		str_clear(dest);
+	else
+	{
+		char* const p = memcpy(mem_alloc(n + 1), str_ptr(s), n);
 
-	char* const p = memcpy(mem_alloc(n + 1), str_ptr(s), n);
+		p[n] = 0;
 
-	p[n] = 0;
-
-	return str_acquire_range(p, n);
+		str_acquire_range(dest, p, n);
+	}
 }
 
 // append string
@@ -93,7 +122,7 @@ bool simple_cat(str* const dest, const str* const src, const size_t n)
 
 	if(n == 1)
 	{
-		str_assign(dest, str_dup(src[0]));
+		str_dup(dest, src[0]);
 		return true;
 	}
 
@@ -138,7 +167,7 @@ void str_cat_range(str* const dest, const str* const src, const size_t n)
 
 	// null-terminate and assign
 	*p = 0;
-	str_assign(dest, str_acquire_range(buff, num));
+	str_acquire_range(dest, buff, num);
 }
 
 // join strings
@@ -174,7 +203,7 @@ void str_join_range(str* const dest, const str sep, const str* const src, const 
 
 	// null-terminate and assign
 	*p = 0;
-	str_assign(dest, str_acquire_range(buff, num));
+	str_acquire_range(dest, buff, num);
 }
 
 void str_join_range_ignore_empty(str* const dest, const str sep, const str* const src, const size_t n)
@@ -216,7 +245,7 @@ void str_join_range_ignore_empty(str* const dest, const str sep, const str* cons
 		if(!str_is_empty(src[i]))
 			p = append_str(append_str(p, sep), src[i]);
 
-	// null-terminate and assign
+	// null-terminate and acquire
 	*p = 0;
-	str_assign(dest, str_acquire_range(buff, num_bytes));
+	str_acquire_range(dest, buff, num_bytes);
 }

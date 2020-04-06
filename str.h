@@ -107,23 +107,15 @@ void str_join_range_ignore_empty(str* const dest, const str sep, const str* cons
 #define str_lit(s) ((str){ "" s, _ref_info(sizeof(s) - 1) })
 
 // make a copy of the given string
-str str_dup(const str s);
+void str_dup(str* const dest, const str s);
 
 static inline
 str _str_ref(const str s) { return (str){ s.ptr, s.info & ~(size_t)1 }; }
 
 // create a reference to the given range of chars
-static inline
-str str_ref_range(const char* const s, const size_t n)
-{
-	return (s && n > 0) ? ((str){ s, _ref_info(n) }) : str_null;
-}
+str str_ref_range(const char* const s, const size_t n);
 
-static inline
-str _str_ref_form_ptr(const char* const s)
-{
-	return s ? str_ref_range(s, strlen(s)) : str_null;
-}
+str _str_ref_form_ptr(const char* const s);
 
 // string reference from anything
 #define str_ref(s) _Generic((s),	\
@@ -132,19 +124,10 @@ str _str_ref_form_ptr(const char* const s)
 )(s)
 
 // take ownership of the given range of bytes; totally unsafe, use at your own risk.
-static inline
-str str_acquire_range(const char* const s, size_t n)
-{
-	// take ownership even if the string is empty, because its memory is still allocated
-	return s ? ((str){ s, _owner_info(n) }) : str_null;
-}
+void str_acquire_range(str* const dest, const char* const s, size_t n);
 
 // take ownership of the given string; totally unsafe, use at your own risk
-static inline
-str str_acquire(const char* const s)
-{
-	return s ? str_acquire_range(s, strlen(s)) : str_null;
-}
+void str_acquire(str* const dest, const char* const s);
 
 #ifdef __cplusplus
 }

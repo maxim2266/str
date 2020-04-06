@@ -29,7 +29,9 @@ void test_str_lit(void)
 static
 void test_str_dup(void)
 {
-	const str s = str_dup(str_lit("ZZZ"));
+	str s = str_null;
+
+	str_dup(&s, str_lit("ZZZ"));
 
 	assert(str_len(s) == 3);
 	assert(!str_is_ref(s));
@@ -43,7 +45,9 @@ void test_str_dup(void)
 static
 void test_str_clear(void)
 {
-	str s = str_dup(str_lit("ZZZ"));
+	str s = str_null;
+
+	str_dup(&s, str_lit("ZZZ"));
 
 	assert(str_len(s) == 3);
 	assert(str_is_owner(s));
@@ -59,7 +63,10 @@ void test_str_clear(void)
 static
 void test_str_move(void)
 {
-	str s1 = str_dup(str_lit("ZZZ"));
+	str s1 = str_null;
+
+	str_dup(&s1, str_lit("ZZZ"));
+
 	str s2 = str_move(&s1);
 
 	assert(str_is_empty(s1));
@@ -107,7 +114,9 @@ void test_str_cmp(void)
 static
 void test_str_acquire(void)
 {
-	const str s = str_acquire(strdup("ZZZ"));
+	str s = str_null;
+
+	str_acquire(&s, strdup("ZZZ"));
 
 	assert(str_is_owner(s));
 	assert(str_eq(s, str_lit("ZZZ")));

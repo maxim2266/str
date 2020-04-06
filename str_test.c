@@ -121,13 +121,13 @@ void test_str_cat(void)
 {
 	str s = str_null;
 
-	str_cat_args(&s, str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
+	str_cat(&s, str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
 
 	assert(str_eq(s, str_lit("AAABBBCCC")));
 	assert(str_is_alloc(s));
 	assert(strcmp(str_ptr(s), "AAABBBCCC") == 0);	// test null terminator
 
-	str_cat_args(&s, str_null, str_null, str_null);	// this simply clears the target string
+	str_cat(&s, str_null, str_null, str_null);	// this simply clears the target string
 
 	assert(str_is_empty(s));
 	assert(str_is_ref(s));
@@ -140,13 +140,13 @@ void test_str_join(void)
 {
 	str s = str_null;
 
-	str_join_args(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
+	str_join(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
 
 	assert(str_eq(s, str_lit("AAA_BBB_CCC")));
 	assert(str_is_alloc(s));
 	assert(strcmp(str_ptr(s), "AAA_BBB_CCC") == 0);	// test null terminator
 
-	str_join_args(&s, str_null);	// this simply clears the target string
+	str_join(&s, str_null);	// this simply clears the target string
 
 	assert(str_is_empty(s));
 	assert(str_is_ref(s));
@@ -159,8 +159,8 @@ void test_composition(void)
 {
 	str s = str_lit(", ");
 
-	str_join_args(&s, s, str_lit("Here"), str_lit("there"), str_lit("and everywhere"));
-	str_cat_args(&s, s, str_lit("..."));
+	str_join(&s, s, str_lit("Here"), str_lit("there"), str_lit("and everywhere"));
+	str_cat(&s, s, str_lit("..."));
 
 	assert(str_eq(s, str_lit("Here, there, and everywhere...")));
 	assert(str_ptr(s)[str_len(s)] == 0);

@@ -101,7 +101,7 @@ bool simple_cat(str* const dest, const str* const src, const size_t n)
 }
 
 // concatenate strings
-void str_cat(str* const dest, const str* const src, const size_t n)
+void str_cat_range(str* const dest, const str* const src, const size_t n)
 {
 	// test for simple cases
 	if(simple_cat(dest, src, n))
@@ -134,12 +134,12 @@ void str_cat(str* const dest, const str* const src, const size_t n)
 }
 
 // join strings
-void str_join(str* const dest, const str sep, const str* const src, const size_t n)
+void str_join_range(str* const dest, const str sep, const str* const src, const size_t n)
 {
 	// test for simple cases
 	if(str_is_empty(sep))
 	{
-		str_cat(dest, src, n);
+		str_cat_range(dest, src, n);
 		return;
 	}
 

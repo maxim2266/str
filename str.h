@@ -69,23 +69,23 @@ static inline
 bool str_eq(const str s1, const str s2) { return str_cmp(s1, s2) == 0; }
 
 // concatenate strings
-void str_cat(str* const dest, const str* const src, const size_t n);
+void str_cat_range(str* const dest, const str* const src, const size_t n);
 
 // concatenate string arguments
-#define str_cat_args(dest, ...)	\
+#define str_cat(dest, ...)	\
 	do {	\
 		const str args[] = { __VA_ARGS__ };	\
-		str_cat((dest), args, sizeof(args)/sizeof(args[0]));	\
+		str_cat_range((dest), args, sizeof(args)/sizeof(args[0]));	\
 	} while(0)
 
 // join strings around the separator
-void str_join(str* const dest, const str sep, const str* const src, const size_t n);
+void str_join_range(str* const dest, const str sep, const str* const src, const size_t n);
 
 // join string arguments around the separator
-#define str_join_args(dest, sep, ...)	\
+#define str_join(dest, sep, ...)	\
 	do {	\
 		const str args[] = { __VA_ARGS__ };	\
-		str_join((dest), (sep), args, sizeof(args)/sizeof(args[0]));	\
+		str_join_range((dest), (sep), args, sizeof(args)/sizeof(args[0]));	\
 	} while(0)
 
 // constructors ----------------------------------------------------------------------------

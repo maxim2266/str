@@ -5,13 +5,14 @@
 #include <string.h>
 #include <stdio.h>
 
+// make sure assert is always enabled
 #ifdef NDEBUG
 #undef NDEBUG
 #endif
 
 #include <assert.h>
 
-#define passed printf("passed: %s\n", __func__)
+#define passed	printf("passed: %s\n", __func__)
 
 static
 void test_str_lit(void)
@@ -37,6 +38,7 @@ void test_str_dup(void)
 	assert(!str_is_ref(s));
 	assert(str_is_owner(s));
 	assert(str_eq(s, str_lit("ZZZ")));
+	assert(*str_end(s) == 0);
 
 	str_free(s);
 	passed;
@@ -51,6 +53,7 @@ void test_str_clear(void)
 
 	assert(str_len(s) == 3);
 	assert(str_is_owner(s));
+	assert(*str_end(s) == 0);
 
 	str_clear(&s);
 
@@ -120,6 +123,7 @@ void test_str_acquire(void)
 
 	assert(str_is_owner(s));
 	assert(str_eq(s, str_lit("ZZZ")));
+	assert(*str_end(s) == 0);
 
 	str_free(s);
 	passed;
@@ -134,7 +138,7 @@ void test_str_cat(void)
 
 	assert(str_eq(s, str_lit("AAABBBCCC")));
 	assert(str_is_owner(s));
-	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+	assert(*str_end(s) == 0);
 
 	str_cat(&s, str_null, str_null, str_null);	// this simply clears the target string
 
@@ -153,25 +157,31 @@ void test_str_join(void)
 
 	assert(str_eq(s, str_lit("AAA_BBB_CCC")));
 	assert(str_is_owner(s));
-	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+	assert(*str_end(s) == 0);
 
 	str_join(&s, str_lit("_"), str_null, str_lit("BBB"), str_lit("CCC"));
 
 	assert(str_eq(s, str_lit("_BBB_CCC")));
 	assert(str_is_owner(s));
-	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+	assert(*str_end(s) == 0);
 
 	str_join(&s, str_lit("_"), str_lit("AAA"), str_null, str_lit("CCC"));
 
 	assert(str_eq(s, str_lit("AAA__CCC")));
 	assert(str_is_owner(s));
-	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+	assert(*str_end(s) == 0);
 
 	str_join(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_null);
 
 	assert(str_eq(s, str_lit("AAA_BBB_")));
 	assert(str_is_owner(s));
-	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+	assert(*str_end(s) == 0);
+
+	str_join(&s, str_lit("_"), str_null, str_null, str_null);
+
+	assert(str_eq(s, str_lit("__")));
+	assert(str_is_owner(s));
+	assert(*str_end(s) == 0);
 
 	str_join(&s, str_null);	// this simply clears the target string
 
@@ -190,25 +200,25 @@ void test_str_join_ignore_empty(void)
 
 	assert(str_eq(s, str_lit("AAA_BBB_CCC")));
 	assert(str_is_owner(s));
-	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+	assert(*str_end(s) == 0);
 
 	str_join_ignore_empty(&s, str_lit("_"), str_lit("AAA"), str_null, str_lit("CCC"));
 
 	assert(str_eq(s, str_lit("AAA_CCC")));
 	assert(str_is_owner(s));
-	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+	assert(*str_end(s) == 0);
 
 	str_join_ignore_empty(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_null);
 
 	assert(str_eq(s, str_lit("AAA_BBB")));
 	assert(str_is_owner(s));
-	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+	assert(*str_end(s) == 0);
 
 	str_join_ignore_empty(&s, str_lit("_"), str_null, str_lit("BBB"), str_lit("CCC"));
 
 	assert(str_eq(s, str_lit("BBB_CCC")));
 	assert(str_is_owner(s));
-	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+	assert(*str_end(s) == 0);
 
 	str_join_ignore_empty(&s, str_null);	// this simply clears the target string
 
@@ -227,7 +237,8 @@ void test_composition(void)
 	str_cat(&s, s, str_lit("..."));
 
 	assert(str_eq(s, str_lit("Here, there, and everywhere...")));
-	assert(str_ptr(s)[str_len(s)] == 0);
+	assert(str_is_owner(s));
+	assert(*str_end(s) == 0);
 
 	str_free(s);
 	passed;
@@ -248,5 +259,5 @@ int main(void)
 	test_str_join_ignore_empty();
 	test_composition();
 
-	return (puts("OK") >= 0) ? 0 : 1;
+	return puts("OK.") < 0;
 }

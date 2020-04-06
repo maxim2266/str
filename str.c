@@ -70,7 +70,7 @@ str _str_ref_form_ptr(const char* const s)
 	return s ? str_ref_range(s, strlen(s)) : str_null;
 }
 
-// take ownership of the given range of bytes
+// take ownership of the given range of chars
 void str_acquire_range(str* const dest, const char* const s, size_t n)
 {
 	// take ownership even if the string is empty, because its memory is still allocated

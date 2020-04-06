@@ -18,6 +18,10 @@ typedef struct
 // NULL string
 #define str_null ((str){ 0 })
 
+// helper macros
+#define _ref_info(n)	((n) << 1)
+#define _owner_info(n)	(_ref_info(n) | 1)
+
 // string properties ----------------------------------------------------------------------
 // length of the string
 static inline
@@ -99,12 +103,8 @@ void str_join_range_ignore_empty(str* const dest, const str sep, const str* cons
 	} while(0)
 
 // constructors ----------------------------------------------------------------------------
-// helper macros
-#define _ref_info(n)	((n) << 1)
-#define _owner_info(n)	(_ref_info(n) | 1)
-
 // string reference from a string literal
-#define str_lit(s) ((str){ "" s, _ref_info(sizeof(s) - 1) })
+#define str_lit(s)	((str){ "" s, _ref_info(sizeof(s) - 1) })
 
 // make a copy of the given string
 void str_dup(str* const dest, const str s);
@@ -112,18 +112,18 @@ void str_dup(str* const dest, const str s);
 static inline
 str _str_ref(const str s) { return (str){ s.ptr, s.info & ~(size_t)1 }; }
 
-// create a reference to the given range of chars
-str str_ref_range(const char* const s, const size_t n);
-
 str _str_ref_form_ptr(const char* const s);
 
 // string reference from anything
 #define str_ref(s) _Generic((s),	\
-	str:	_str_ref,	\
-	char*:	_str_ref_form_ptr	\
-)(s)
+		str:	_str_ref,	\
+		char*:	_str_ref_form_ptr	\
+	)(s)
 
-// take ownership of the given range of bytes; totally unsafe, use at your own risk.
+// create a reference to the given range of chars
+str str_ref_range(const char* const s, const size_t n);
+
+// take ownership of the given range of chars; totally unsafe, use at your own risk.
 void str_acquire_range(str* const dest, const char* const s, size_t n);
 
 // take ownership of the given string; totally unsafe, use at your own risk

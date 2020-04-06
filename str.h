@@ -37,11 +37,11 @@ bool str_is_empty(const str s) { return str_len(s) == 0; }
 
 // test if the string is allocated on the heap
 static inline
-bool str_is_alloc(const str s) { return (s.info & 1) != 0; }
+bool str_is_owner(const str s) { return (s.info & 1) != 0; }
 
 // test if the string is a reference
 static inline
-bool str_is_ref(const str s) { return !str_is_alloc(s); }
+bool str_is_ref(const str s) { return !str_is_owner(s); }
 
 // string memory control -------------------------------------------------------------------
 // free memory allocated for the string
@@ -89,8 +89,12 @@ void str_join_range(str* const dest, const str sep, const str* const src, const 
 	} while(0)
 
 // constructors ----------------------------------------------------------------------------
+// helper macros
+#define _ref_info(n)	((n) << 1)
+#define _owner_info(n)	(_ref_info(n) | 1)
+
 // string reference from a string literal
-#define str_lit(s) ((str){ "" s, (sizeof(s) - 1) << 1 })
+#define str_lit(s) ((str){ "" s, _ref_info(sizeof(s) - 1) })
 
 // make a copy of the given string
 str str_dup(const str s);
@@ -102,7 +106,7 @@ str _str_ref(const str s) { return (str){ s.ptr, s.info & ~(size_t)1 }; }
 static inline
 str str_ref_range(const char* const s, const size_t n)
 {
-	return (s && n > 0) ? ((str){ s, n << 1 }) : str_null;
+	return (s && n > 0) ? ((str){ s, _ref_info(n) }) : str_null;
 }
 
 static inline
@@ -122,7 +126,7 @@ static inline
 str str_acquire_range(const char* const s, size_t n)
 {
 	// take ownership even if the string is empty, because its memory is still allocated
-	return s ? ((str){ s, (n << 1) | 1 }) : str_null;
+	return s ? ((str){ s, _owner_info(n) }) : str_null;
 }
 
 // take ownership of the given string; totally unsafe, use at your own risk

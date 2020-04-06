@@ -30,7 +30,7 @@ void mem_free(void* p)
 // string deallocation
 void str_free(const str s)
 {
-	if(str_is_alloc(s))
+	if(str_is_owner(s))
 		mem_free((void*)s.ptr);
 }
 
@@ -62,7 +62,7 @@ str str_dup(const str s)
 
 	p[n] = 0;
 
-	return (str){ p, (n << 1) | 1 };
+	return (str){ p, _owner_info(n) };
 }
 
 // compatibility

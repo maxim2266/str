@@ -20,7 +20,7 @@ void test_str_lit(void)
 
 	assert(str_len(s) == 3);
 	assert(str_is_ref(s));
-	assert(!str_is_alloc(s));
+	assert(!str_is_owner(s));
 	assert(str_eq(s, str_lit("ZZZ")));
 
 	passed;
@@ -33,7 +33,7 @@ void test_str_dup(void)
 
 	assert(str_len(s) == 3);
 	assert(!str_is_ref(s));
-	assert(str_is_alloc(s));
+	assert(str_is_owner(s));
 	assert(str_eq(s, str_lit("ZZZ")));
 
 	str_free(s);
@@ -46,7 +46,7 @@ void test_str_clear(void)
 	str s = str_dup(str_lit("ZZZ"));
 
 	assert(str_len(s) == 3);
-	assert(str_is_alloc(s));
+	assert(str_is_owner(s));
 
 	str_clear(&s);
 
@@ -65,7 +65,7 @@ void test_str_move(void)
 	assert(str_is_empty(s1));
 	assert(str_is_ref(s1));
 
-	assert(str_is_alloc(s2));
+	assert(str_is_owner(s2));
 	assert(str_eq(s2, str_lit("ZZZ")));
 
 	str_free(s2);
@@ -109,7 +109,7 @@ void test_str_acquire(void)
 {
 	const str s = str_acquire(strdup("ZZZ"));
 
-	assert(str_is_alloc(s));
+	assert(str_is_owner(s));
 	assert(str_eq(s, str_lit("ZZZ")));
 
 	str_free(s);
@@ -124,7 +124,7 @@ void test_str_cat(void)
 	str_cat(&s, str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
 
 	assert(str_eq(s, str_lit("AAABBBCCC")));
-	assert(str_is_alloc(s));
+	assert(str_is_owner(s));
 	assert(strcmp(str_ptr(s), "AAABBBCCC") == 0);	// test null terminator
 
 	str_cat(&s, str_null, str_null, str_null);	// this simply clears the target string
@@ -143,7 +143,7 @@ void test_str_join(void)
 	str_join(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
 
 	assert(str_eq(s, str_lit("AAA_BBB_CCC")));
-	assert(str_is_alloc(s));
+	assert(str_is_owner(s));
 	assert(strcmp(str_ptr(s), "AAA_BBB_CCC") == 0);	// test null terminator
 
 	str_join(&s, str_null);	// this simply clears the target string

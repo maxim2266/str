@@ -134,16 +134,22 @@ void str_cat_range(str* const dest, const str* const src, const size_t n)
 }
 
 // join strings
-void str_join_range(str* const dest, const str sep, const str* const src, const size_t n)
+static
+bool simple_join(str* const dest, const str sep, const str* const src, const size_t n)
 {
-	// test for simple cases
 	if(str_is_empty(sep))
 	{
 		str_cat_range(dest, src, n);
-		return;
+		return true;
 	}
 
-	if(simple_cat(dest, src, n))
+	return simple_cat(dest, src, n);
+}
+
+void str_join_range(str* const dest, const str sep, const str* const src, const size_t n)
+{
+	// test for simple cases
+	if(simple_join(dest, sep, src, n))
 		return;
 
 	// calculate total length
@@ -172,4 +178,48 @@ void str_join_range(str* const dest, const str sep, const str* const src, const 
 	// null-terminate and assign
 	*p = 0;
 	str_assign(dest, str_acquire_range(buff, num));
+}
+
+void str_join_range_ignore_empty(str* const dest, const str sep, const str* const src, const size_t n)
+{
+	// test for simple cases
+	if(simple_join(dest, sep, src, n))
+		return;
+
+	// calculate total length, also trimming empty strings from both ends of the range
+	// 1. find first non-empty string index
+	size_t num_bytes = str_len(src[0]), first = 0;
+
+	while(num_bytes == 0 && ++first < n)
+		num_bytes = str_len(src[first]);
+
+	if(first == n)
+	{
+		str_clear(dest);
+		return;
+	}
+
+	// 2. find last non-empty string index
+	size_t last = n;
+
+	while(str_is_empty(src[--last]));
+
+	// 3. calculate total length ignoring empty strings
+	for(size_t i = first + 1; i <= last; ++i)
+		if(!str_is_empty(src[i]))
+			num_bytes += str_len(sep) + str_len(src[i]);
+
+	// allocate
+	char* const buff = mem_alloc(num_bytes + 1);
+
+	// copy bytes
+	char* p = append_str(buff, src[first]);
+
+	for(size_t i = first + 1; i <= last; ++i)
+		if(!str_is_empty(src[i]))
+			p = append_str(append_str(p, sep), src[i]);
+
+	// null-terminate and assign
+	*p = 0;
+	str_assign(dest, str_acquire_range(buff, num_bytes));
 }

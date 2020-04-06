@@ -88,6 +88,16 @@ void str_join_range(str* const dest, const str sep, const str* const src, const 
 		str_join_range((dest), (sep), args, sizeof(args)/sizeof(args[0]));	\
 	} while(0)
 
+// join strings around the separator ignoring empty ones
+void str_join_range_ignore_empty(str* const dest, const str sep, const str* const src, const size_t n);
+
+// join string arguments around the separator ignoring empty ones
+#define str_join_ignore_empty(dest, sep, ...)	\
+	do {	\
+		const str args[] = { __VA_ARGS__ };	\
+		str_join_range_ignore_empty((dest), (sep), args, sizeof(args)/sizeof(args[0]));	\
+	} while(0)
+
 // constructors ----------------------------------------------------------------------------
 // helper macros
 #define _ref_info(n)	((n) << 1)

@@ -125,7 +125,7 @@ void test_str_cat(void)
 
 	assert(str_eq(s, str_lit("AAABBBCCC")));
 	assert(str_is_owner(s));
-	assert(strcmp(str_ptr(s), "AAABBBCCC") == 0);	// test null terminator
+	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
 
 	str_cat(&s, str_null, str_null, str_null);	// this simply clears the target string
 
@@ -144,9 +144,64 @@ void test_str_join(void)
 
 	assert(str_eq(s, str_lit("AAA_BBB_CCC")));
 	assert(str_is_owner(s));
-	assert(strcmp(str_ptr(s), "AAA_BBB_CCC") == 0);	// test null terminator
+	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+
+	str_join(&s, str_lit("_"), str_null, str_lit("BBB"), str_lit("CCC"));
+
+	assert(str_eq(s, str_lit("_BBB_CCC")));
+	assert(str_is_owner(s));
+	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+
+	str_join(&s, str_lit("_"), str_lit("AAA"), str_null, str_lit("CCC"));
+
+	assert(str_eq(s, str_lit("AAA__CCC")));
+	assert(str_is_owner(s));
+	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+
+	str_join(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_null);
+
+	assert(str_eq(s, str_lit("AAA_BBB_")));
+	assert(str_is_owner(s));
+	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
 
 	str_join(&s, str_null);	// this simply clears the target string
+
+	assert(str_is_empty(s));
+	assert(str_is_ref(s));
+
+	passed;
+}
+
+static
+void test_str_join_ignore_empty(void)
+{
+	str s = str_null;
+
+	str_join_ignore_empty(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
+
+	assert(str_eq(s, str_lit("AAA_BBB_CCC")));
+	assert(str_is_owner(s));
+	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+
+	str_join_ignore_empty(&s, str_lit("_"), str_lit("AAA"), str_null, str_lit("CCC"));
+
+	assert(str_eq(s, str_lit("AAA_CCC")));
+	assert(str_is_owner(s));
+	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+
+	str_join_ignore_empty(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_null);
+
+	assert(str_eq(s, str_lit("AAA_BBB")));
+	assert(str_is_owner(s));
+	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+
+	str_join_ignore_empty(&s, str_lit("_"), str_null, str_lit("BBB"), str_lit("CCC"));
+
+	assert(str_eq(s, str_lit("BBB_CCC")));
+	assert(str_is_owner(s));
+	assert(str_ptr(s)[str_len(s)] == 0);	// test null terminator
+
+	str_join_ignore_empty(&s, str_null);	// this simply clears the target string
 
 	assert(str_is_empty(s));
 	assert(str_is_ref(s));
@@ -181,7 +236,8 @@ int main(void)
 	test_str_acquire();
 	test_str_cat();
 	test_str_join();
+	test_str_join_ignore_empty();
 	test_composition();
 
-	return (puts("OK.") >= 0) ? 0 : 1;
+	return (puts("OK") >= 0) ? 0 : 1;
 }

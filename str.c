@@ -5,6 +5,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// compatibility
+#ifndef _GNU_SOURCE
+static inline
+void* mempcpy(void* dest, const void* src, const size_t n)
+{
+	return memcpy(dest, src, n) + n;
+}
+#endif
+
 // memory allocation wrappers
 static __attribute__((malloc))
 void* mem_alloc(const size_t n)
@@ -14,7 +23,7 @@ void* mem_alloc(const size_t n)
 	if(!p)
 	{
 		perror("fatal error");
-		exit(EXIT_FAILURE);
+		abort();
 	}
 
 	return p;
@@ -62,17 +71,8 @@ str str_dup(const str s)
 
 	p[n] = 0;
 
-	return (str){ p, _owner_info(n) };
+	return str_acquire_range(p, n);
 }
-
-// compatibility
-#ifndef _GNU_SOURCE
-static inline
-void* mempcpy(void* dest, const void* src, const size_t n)
-{
-	return memcpy(dest, src, n) + n;
-}
-#endif
 
 // append string
 static inline
@@ -100,6 +100,17 @@ bool simple_cat(str* const dest, const str* const src, const size_t n)
 	return false;
 }
 
+static
+size_t total_length(const str* const src, const size_t n)
+{
+	size_t sum = 0;
+
+	for(size_t i = 0; i < n; ++i)
+		sum += str_len(src[i]);
+
+	return sum;
+}
+
 // concatenate strings
 void str_cat_range(str* const dest, const str* const src, const size_t n)
 {
@@ -108,10 +119,7 @@ void str_cat_range(str* const dest, const str* const src, const size_t n)
 		return;
 
 	// calculate total length
-	size_t num = 0;
-
-	for(size_t i = 0; i < n; ++i)
-		num += str_len(src[i]);
+	const size_t num = total_length(src, n);
 
 	if(num == 0)
 	{
@@ -153,18 +161,7 @@ void str_join_range(str* const dest, const str sep, const str* const src, const 
 		return;
 
 	// calculate total length
-	size_t num = 0;
-
-	for(size_t i = 0; i < n; ++i)
-		num += str_len(src[i]);
-
-	if(num == 0)
-	{
-		str_clear(dest);
-		return;
-	}
-
-	num += str_len(sep) * (n - 1);
+	const size_t num = total_length(src, n) + str_len(sep) * (n - 1);
 
 	// allocate
 	char* const buff = mem_alloc(num + 1);

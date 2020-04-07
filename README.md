@@ -9,7 +9,7 @@ with existing libraries, so decided to make the right one, once and forever. ðŸ™
 
 ## Installation
 Just clone the project and copy (or symlink) the files `str.h` and `str.c` into your project,
-but please respect the [license](./blob/master/LICENSE).
+but please respect the [license](LICENSE).
 
 ## Code Example
 ```C

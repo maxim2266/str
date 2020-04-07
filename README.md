@@ -117,7 +117,7 @@ Returns the number of bytes in the string associated with the object.
 Returns a pointer to the first byte of the string associated with the object. The pointer is never NULL.
 
 `const char* str_end(const str s)`<br>
-Returns a pointer to the byte past the end of the string associated with the object.
+Returns a pointer to the next byte past the end of the string associated with the object.
 The pointer is never NULL, but it is not guaranteed to point to any valid byte or location.
 Useful in places like `for` loops.
 

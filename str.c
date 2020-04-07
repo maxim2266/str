@@ -60,18 +60,18 @@ int str_cmp(const str s1, const str s2)
 }
 
 // create a reference to the given range of chars
-str str_ref_range(const char* const s, const size_t n)
+str str_ref_chars(const char* const s, const size_t n)
 {
 	return (s && n > 0) ? ((str){ s, _ref_info(n) }) : str_null;
 }
 
 str _str_ref_form_ptr(const char* const s)
 {
-	return s ? str_ref_range(s, strlen(s)) : str_null;
+	return s ? str_ref_chars(s, strlen(s)) : str_null;
 }
 
 // take ownership of the given range of chars
-void str_acquire_range(str* const dest, const char* const s, size_t n)
+void str_acquire_chars(str* const dest, const char* const s, size_t n)
 {
 	// take ownership even if the string is empty, because its memory is still allocated
 	str_assign(dest, s ? ((str){ s, _owner_info(n) }) : str_null);
@@ -81,7 +81,7 @@ void str_acquire_range(str* const dest, const char* const s, size_t n)
 void str_acquire(str* const dest, const char* const s)
 {
 	if(s)
-		str_acquire_range(dest, s, strlen(s));
+		str_acquire_chars(dest, s, strlen(s));
 	else
 		str_clear(dest);
 }
@@ -99,7 +99,7 @@ void str_dup(str* const dest, const str s)
 
 		p[n] = 0;
 
-		str_acquire_range(dest, p, n);
+		str_acquire_chars(dest, p, n);
 	}
 }
 
@@ -167,7 +167,7 @@ void str_cat_range(str* const dest, const str* const src, const size_t n)
 
 	// null-terminate and assign
 	*p = 0;
-	str_acquire_range(dest, buff, num);
+	str_acquire_chars(dest, buff, num);
 }
 
 // join strings
@@ -203,7 +203,7 @@ void str_join_range(str* const dest, const str sep, const str* const src, const 
 
 	// null-terminate and assign
 	*p = 0;
-	str_acquire_range(dest, buff, num);
+	str_acquire_chars(dest, buff, num);
 }
 
 void str_join_range_ignore_empty(str* const dest, const str sep, const str* const src, const size_t n)
@@ -247,5 +247,5 @@ void str_join_range_ignore_empty(str* const dest, const str sep, const str* cons
 
 	// null-terminate and acquire
 	*p = 0;
-	str_acquire_range(dest, buff, num_bytes);
+	str_acquire_chars(dest, buff, num_bytes);
 }

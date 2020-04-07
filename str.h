@@ -121,10 +121,10 @@ str _str_ref_form_ptr(const char* const s);
 	)(s)
 
 // create a reference to the given range of chars
-str str_ref_range(const char* const s, const size_t n);
+str str_ref_chars(const char* const s, const size_t n);
 
 // take ownership of the given range of chars; totally unsafe, use at your own risk.
-void str_acquire_range(str* const dest, const char* const s, size_t n);
+void str_acquire_chars(str* const dest, const char* const s, size_t n);
 
 // take ownership of the given string; totally unsafe, use at your own risk
 void str_acquire(str* const dest, const char* const s);

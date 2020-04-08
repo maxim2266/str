@@ -22,7 +22,7 @@ assert(str_eq(s, str_lit("Here, there, and everywhere...")));
 str_free(s);
 ```
 
-## Design Principles
+## User Guide
 
 _**Disclaimer:** This is the good old C language, not Rust, so nothing can be enforced
 on the language level, and certain programming discipline is required to make sure
@@ -37,7 +37,7 @@ undefined behaviour. Use `str_null` for empty strings.
 
 There are two kinds of `str` objects: those actually owning the memory they point to, and
 non-owning references. This property can be queried using `str_is_owner` and `str_is_ref`
-functions, otherwise those objects are indistinguishable.
+functions, otherwise such objects are indistinguishable.
 
 String references are safe to copy and assign to each other, as long as the memory
 they refer to is valid. They do not need to be free'd. `str_free` is a no-op for reference
@@ -72,14 +72,14 @@ will certainly be lost. Assigning via a pointer makes these errors less likely.
 
 In this library all strings are assumed to be immutable, but only by means of `const char*`
 pointers, so it is actually possible to write to such a string, although the required type
-cast to `char*` offers at least a psychological protection from modifying a string by mistake.
+cast to `char*` offers at least some (mostly psychological) protection from modifying a string
+by mistake.
 
 Another issue is that it is technically possible to create a reference to a string that is not
 null-terminated. The library accepts strings without null-terminators, but every new string
 allocated by the library is guaranteed to be null-terminated.
 
-Just to make things more clear, here is the same code as in the example above,
-but with comments:
+Just to make things more clear, here is the same code as in the example above, but with comments:
 ```C
 // declare a variable and initialise it with an empty string
 str s = str_null;
@@ -89,10 +89,10 @@ str s = str_null;
 str_join(&s, str_lit(", "), str_lit("Here"), str_lit("there"), str_lit("and everywhere"));
 
 // create a new string concatenating "s" and a literal; the function does not modify its
-// destination object "s" before the result is computed, also free'ing the destination
+// destination object "s" before the result is computed, also freeing the destination
 // before the assignment, so it is safe to use "s" as both a parameter and a destination.
-// note: we pass a copy of the owning object "s" as the second parameter, and it is
-// safe to do so because this particular function does not store or release it.
+// note: we pass a copy of the owning object "s" as the second parameter, and here it is
+// safe to do so because this particular function does not store or release its arguments.
 str_cat(&s, s, str_lit("..."));
 
 // just check that we have got the expected result
@@ -119,7 +119,7 @@ Returns a pointer to the first byte of the string associated with the object. Th
 `const char* str_end(const str s)`<br>
 Returns a pointer to the next byte past the end of the string associated with the object.
 The pointer is never NULL, but it is not guaranteed to point to any valid byte or location.
-Useful in places like `for` loops.
+For C strings it points to the terminating null character. Useful in places like `for` loops.
 
 `bool str_is_empty(const str s)`<br>
 Returns "true" for empty strings.
@@ -138,7 +138,8 @@ Assigns the object "s" to the object pointed to by "ps". Any memory owned by the
 object is freed before the assignment.
 
 `str str_move(str* const ps)`<br>
-Returns the source object value, also resetting the original object to `str_null`.
+Saves the given object to a temporary, resets the source object to `str_null`, and then
+returns the saved object.
 
 `void str_clear(str* const ps)`<br>
 Sets the target object to `str_null` after freeing any memory associated with the object.
@@ -180,11 +181,15 @@ Constructs string reference object from either a null-terminated C string, or an
 Implemented as a macro.
 
 `str str_ref_chars(const char* const s, const size_t n)`<br>
-Create a non-owning object referencing the given range of bytes.
+Returns a non-owning object referencing the given range of bytes.
+
+`void str_acquire_chars(str* const dest, const char* const s, size_t n)`<br>
+Creates an owning object for the specified range of bytes. The range should be safe to pass to
+`free(3)` function. Destination is assigned using `str_assign` semantics.
 
 `void str_acquire(str* const dest, const char* const s)`<br>
-Take ownership of the specified range of bytes. The range should be safe to pass to
-`free(3)` function.
+Creates an owning object from the given C string. The string should be safe to pass to
+`free(3)` function. Destination is assigned using `str_assign` semantics.
 
 ### Status
 The library requires at least a C99 compiler. So far has been tested on Linux Mint 19.3

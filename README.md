@@ -192,5 +192,5 @@ Creates an owning object from the given C string. The string should be safe to p
 `free(3)` function. Destination is assigned using `str_assign` semantics.
 
 ### Status
-The library requires at least a C99 compiler. So far has been tested on Linux Mint 19.3
+The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3
 with `gcc` version 7.5.0.

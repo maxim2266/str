@@ -45,33 +45,24 @@ void* mempcpy(void* dest, const void* src, const size_t n)
 }
 #endif
 
-// memory allocation wrappers
+// memory allocation
 static __attribute__((malloc))
 void* mem_alloc(const size_t n)
 {
 	void* const p = malloc(n);
 
-	if(!p)
-	{
-		perror("fatal error");
-		abort();
-	}
-
-	return p;
-}
-
-static inline
-void mem_free(void* p)
-{
 	if(p)
-		free(p);
+		return p;
+
+	perror("fatal error");
+	abort();
 }
 
 // string deallocation
 void str_free(const str s)
 {
-	if(str_is_owner(s))
-		mem_free((void*)s.ptr);
+	if(str_is_owner(s) && s.ptr)
+		free((void*)s.ptr);
 }
 
 // compare two strings lexicographically
@@ -108,13 +99,11 @@ void str_acquire_chars(str* const dest, const char* const s, size_t n)
 	str_assign(dest, s ? ((str){ s, _owner_info(n) }) : str_null);
 }
 
-// take ownership of the given string
+// take ownership of the given C string
 void str_acquire(str* const dest, const char* const s)
 {
-	if(s)
-		str_acquire_chars(dest, s, strlen(s));
-	else
-		str_clear(dest);
+	// take ownership even if the string is empty, because its memory is still allocated
+	str_assign(dest, s ? ((str){ s, _owner_info(strlen(s)) }) : str_null);
 }
 
 // allocate a copy of the given string

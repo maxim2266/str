@@ -11,9 +11,13 @@ CFLAGS := -ggdb -std=c11 -Wall -Wextra -Werror=implicit-function-declaration	\
 # source files
 SRC := str.c str.h str_test.c
 
+# compiler
+CC := gcc
+#CC := clang
+
 # test
 test: $(SRC)
-	gcc $(CFLAGS) -o $@ $(filter %.c,$^)
+	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
 	./$@
 
 # clean-up

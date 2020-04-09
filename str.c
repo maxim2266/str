@@ -32,8 +32,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "str.h"
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 
 // compatibility
@@ -46,8 +44,19 @@ void* mempcpy(void* dest, const void* src, const size_t n)
 #endif
 
 // memory allocation
+#ifdef STR_EXT_ALLOC
+
+// these functions are defined elsewhere
+void* str_mem_alloc(size_t);	// this should also handle out of memory condition
+void str_mem_free(void*);
+
+#else
+
+#include <stdlib.h>
+#include <stdio.h>
+
 static __attribute__((malloc))
-void* mem_alloc(const size_t n)
+void* str_mem_alloc(const size_t n)
 {
 	void* const p = malloc(n);
 
@@ -58,11 +67,15 @@ void* mem_alloc(const size_t n)
 	abort();
 }
 
+#define str_mem_free free
+
+#endif	// #ifdef STR_EXT_ALLOC
+
 // string deallocation
 void str_free(const str s)
 {
 	if(str_is_owner(s) && s.ptr)
-		free((void*)s.ptr);
+		str_mem_free((void*)s.ptr);
 }
 
 // compare two strings lexicographically
@@ -115,7 +128,7 @@ void str_dup(str* const dest, const str s)
 		str_clear(dest);
 	else
 	{
-		char* const p = memcpy(mem_alloc(n + 1), str_ptr(s), n);
+		char* const p = memcpy(str_mem_alloc(n + 1), str_ptr(s), n);
 
 		p[n] = 0;
 
@@ -177,7 +190,7 @@ void str_cat_range(str* const dest, const str* const src, const size_t n)
 	}
 
 	// allocate
-	char* const buff = mem_alloc(num + 1);
+	char* const buff = str_mem_alloc(num + 1);
 
 	// copy bytes
 	char* p = buff;
@@ -213,7 +226,7 @@ void str_join_range(str* const dest, const str sep, const str* const src, const 
 	const size_t num = total_length(src, n) + str_len(sep) * (n - 1);
 
 	// allocate
-	char* const buff = mem_alloc(num + 1);
+	char* const buff = str_mem_alloc(num + 1);
 
 	// copy bytes
 	char* p = append_str(buff, src[0]);
@@ -256,7 +269,7 @@ void str_join_range_ignore_empty(str* const dest, const str sep, const str* cons
 			num_bytes += str_len(sep) + str_len(src[i]);
 
 	// allocate
-	char* const buff = mem_alloc(num_bytes + 1);
+	char* const buff = str_mem_alloc(num_bytes + 1);
 
 	// copy bytes
 	char* p = append_str(buff, src[first]);

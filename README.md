@@ -191,6 +191,18 @@ Creates an owning object for the specified range of bytes. The range should be s
 Creates an owning object from the given C string. The string should be safe to pass to
 `free(3)` function. Destination is assigned using `str_assign` semantics.
 
+#### Memory allocation
+By default the library uses `malloc(3)` for memory allocations, and calls `abort(3)`
+if the allocation fails. This behaviour can be changed by hash-defining `STR_EXT_ALLOC`
+symbol and providing the following functions:
+
+`void* str_mem_alloc(size_t)`<br>
+Allocates memory like `malloc(3)` does, also handling out-of-memory situations. The library
+does not check the returned value for NULL.
+
+`void str_mem_free(void*)`<br>
+Releases the allocated memory like `free(3)` does.
+
 ### Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3
 with `gcc` version 7.5.0 and `clang` version 6.0.0.

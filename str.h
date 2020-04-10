@@ -103,6 +103,13 @@ int str_cmp(const str s1, const str s2);
 static inline
 bool str_eq(const str s1, const str s2) { return str_cmp(s1, s2) == 0; }
 
+// case-insensitive comparison
+int str_case_cmp(const str s1, const str s2);
+
+// case-insensitive match
+static inline
+bool str_case_eq(const str s1, const str s2) { return str_case_cmp(s1, s2) == 0; }
+
 // concatenate strings
 void str_cat_range(str* const dest, const str* const src, const size_t n);
 

@@ -110,6 +110,27 @@ void test_str_cmp(void)
 	assert(str_cmp(s, str_null) > 0);
 	assert(str_cmp(str_null, s) < 0);
 	assert(str_cmp(str_null, str_null) == 0);
+	assert(str_eq(s, str_lit("zzz")));
+
+	passed;
+}
+
+static
+void test_str_case_cmp(void)
+{
+	const str s = str_lit("zzz");
+
+	assert(str_case_cmp(s, s) == 0);
+	assert(str_case_cmp(s, str_lit("zzz")) == 0);
+	assert(str_case_cmp(s, str_lit("zz")) > 0);
+	assert(str_case_cmp(s, str_lit("zzzz")) < 0);
+	assert(str_case_cmp(s, str_null) > 0);
+	assert(str_case_cmp(str_null, s) < 0);
+	assert(str_case_cmp(str_null, str_null) == 0);
+	assert(str_case_cmp(s, str_lit("ZZZ")) == 0);
+	assert(str_case_cmp(s, str_lit("ZZ")) > 0);
+	assert(str_case_cmp(s, str_lit("ZZZZ")) < 0);
+	assert(str_case_eq(s, str_lit("ZZZ")));
 
 	passed;
 }
@@ -253,6 +274,7 @@ int main(void)
 	test_str_move();
 	test_str_ref();
 	test_str_cmp();
+	test_str_case_cmp();
 	test_str_acquire();
 	test_str_cat();
 	test_str_join();

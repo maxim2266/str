@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "str.h"
 
+#define _DEFAULT_SOURCE	// for strncasecmp()
 #include <string.h>
 
 // compatibility
@@ -81,12 +82,24 @@ void str_free(const str s)
 // compare two strings lexicographically
 int str_cmp(const str s1, const str s2)
 {
-	const size_t
-		n1 = str_len(s1),
-		n2 = str_len(s2);
+	const size_t n1 = str_len(s1), n2 = str_len(s2);
 
 	// either string may be missing a null terminator, hence "memcmp"
 	const int res = memcmp(str_ptr(s1), str_ptr(s2), (n1 < n2) ? n1 : n2);
+
+	if(res != 0 || n1 == n2)
+		return res;
+
+	return (n1 < n2) ? -1 : 1;
+}
+
+// case-insensitive comparison
+int str_case_cmp(const str s1, const str s2)
+{
+	const size_t n1 = str_len(s1), n2 = str_len(s2);
+
+	// either string may be missing a null terminator, hence "strNcasecmp"
+	const int res = strncasecmp(str_ptr(s1), str_ptr(s2), (n1 < n2) ? n1 : n2);
 
 	if(res != 0 || n1 == n2)
 		return res;

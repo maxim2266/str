@@ -150,6 +150,12 @@ Lexicographically compares the two string objects, with usual semantics.
 `bool str_eq(const str s1, const str s2)`<br>
 Returns "true" if the two strings match exactly.
 
+`int str_case_cmp(const str s1, const str s2)`<br>
+Case-insensitive comparison of two strings, implemented using `strncasecmp(3)`.
+
+`bool str_case_eq(const str s1, const str s2`<br>
+Returns "true" is the two strings match case-insensitively.
+
 `void str_cat_range(str* const dest, const str* const src, const size_t n)`<br>
 Concatenates `n` strings from the array starting at address `src`, and assigns the newly
 allocated string to `dest`, with `str_assign` semantics.

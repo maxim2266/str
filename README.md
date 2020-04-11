@@ -119,7 +119,8 @@ Returns a pointer to the first byte of the string associated with the object. Th
 `const char* str_end(const str s)`<br>
 Returns a pointer to the next byte past the end of the string associated with the object.
 The pointer is never NULL, but it is not guaranteed to point to any valid byte or location.
-For C strings it points to the terminating null character. Useful in places like `for` loops.
+For C strings it points to the terminating null character. For any given string `s` the following
+condition is always satisfied: `str_end(s) == str_ptr(s) + str_len(s)`.
 
 `bool str_is_empty(const str s)`<br>
 Returns "true" for empty strings.

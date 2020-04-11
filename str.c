@@ -55,6 +55,7 @@ void str_mem_free(void*);
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <errno.h>
 
 static __attribute__((malloc))
 void* str_mem_alloc(const size_t n)
@@ -63,6 +64,9 @@ void* str_mem_alloc(const size_t n)
 
 	if(p)
 		return p;
+
+	if(errno == 0)	// a fix for some sub-standard memory allocators
+		errno = ENOMEM;
 
 	perror("fatal error");
 	abort();

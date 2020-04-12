@@ -201,11 +201,15 @@ Creates an owning object for the specified range of bytes. The range should be s
 Creates an owning object from the given C string. The string should be safe to pass to
 `free(3)` function. Destination is assigned using `str_assign` semantics.
 
-#### sorting
+#### sorting and searching
 
 `void str_sort(const str_cmp_func cmp, str* const array, const size_t count)`<br>
 Sorts the given array of `str` objects. A number of typically used sorting functions is
 provided (see `str.h` file).
+
+`const str* str_search(const str key, const str* const array, const size_t count)`<br>
+Binary search for the given key. The input array must be sorted using `str_order_asc`.
+Returns a pointer to the string matching the key, or NULL.
 
 #### Memory allocation
 By default the library uses `malloc(3)` for memory allocations, and calls `abort(3)`

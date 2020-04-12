@@ -305,6 +305,21 @@ void test_sort_ci(void)
 	assert(str_eq_ci(src[3], str_lit("aaa")));
 }
 
+static
+void test_search(void)
+{
+	str src[] = { str_lit("z"), str_lit("zzz"), str_lit("aaa"), str_lit("bbb") };
+	const size_t count = sizeof(src)/sizeof(src[0]);
+
+	str_sort(str_order_asc, src, count);
+
+	assert(str_search(src[0], src, count) == &src[0]);
+	assert(str_search(src[1], src, count) == &src[1]);
+	assert(str_search(src[2], src, count) == &src[2]);
+	assert(str_search(src[3], src, count) == &src[3]);
+	assert(str_search(str_lit("xxx"), src, count) == NULL);
+}
+
 int main(void)
 {
 	// tests
@@ -322,6 +337,7 @@ int main(void)
 	test_composition();
 	test_sort();
 	test_sort_ci();
+	test_search();
 
 	return puts("OK.") < 0;
 }

@@ -329,7 +329,7 @@ void test_search(void)
 static
 void test_uniq(void)
 {
-	str src[10] = { 0 };
+	str src[10] = { {0} };
 
 	str* p = src;
 

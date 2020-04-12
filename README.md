@@ -211,6 +211,11 @@ provided (see `str.h` file).
 Binary search for the given key. The input array must be sorted using `str_order_asc`.
 Returns a pointer to the string matching the key, or NULL.
 
+`size_t str_uniq(str* const array, const size_t count)`<br>
+Retain only the unique strings in the given array. Returns the number of strings.
+After the call, the strings in the array are sorted, so the array is suitable for
+binary search using `str_search()` function.
+
 #### Memory allocation
 By default the library uses `malloc(3)` for memory allocations, and calls `abort(3)`
 if the allocation fails. This behaviour can be changed by hash-defining `STR_EXT_ALLOC`

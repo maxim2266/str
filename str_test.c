@@ -283,6 +283,8 @@ void test_sort(void)
 	assert(str_eq(src[1], str_lit("z")));
 	assert(str_eq(src[2], str_lit("bbb")));
 	assert(str_eq(src[3], str_lit("aaa")));
+
+	passed;
 }
 
 static
@@ -303,6 +305,8 @@ void test_sort_ci(void)
 	assert(str_eq_ci(src[1], str_lit("zzz")));
 	assert(str_eq_ci(src[2], str_lit("aaa")));
 	assert(str_eq_ci(src[3], str_lit("aaa")));
+
+	passed;
 }
 
 static
@@ -318,6 +322,40 @@ void test_search(void)
 	assert(str_search(src[2], src, count) == &src[2]);
 	assert(str_search(src[3], src, count) == &src[3]);
 	assert(str_search(str_lit("xxx"), src, count) == NULL);
+
+	passed;
+}
+
+static
+void test_uniq(void)
+{
+	str src[10] = { 0 };
+
+	str* p = src;
+
+	str_dup(p++, str_lit("zzz"));
+	str_dup(p++, str_lit("zzz"));
+	str_dup(p++, str_lit("aaa"));
+	str_dup(p++, str_lit("bbb"));
+	str_dup(p++, str_lit("aaa"));
+	str_dup(p++, str_lit("bbb"));
+	str_dup(p++, str_lit("bbb"));
+	str_dup(p++, str_lit("bbb"));
+	str_dup(p++, str_lit("aaa"));
+	str_dup(p++, str_lit("zzz"));
+
+	const size_t count = str_uniq(src, p - src);
+
+	assert(count == 3);
+	assert(str_eq(src[0], str_lit("aaa")));
+	assert(str_eq(src[1], str_lit("bbb")));
+	assert(str_eq(src[2], str_lit("zzz")));
+
+	// clean-up
+	for(size_t i = 0; i < count; ++i)
+		str_free(src[i]);
+
+	passed;
 }
 
 int main(void)
@@ -338,6 +376,7 @@ int main(void)
 	test_sort();
 	test_sort_ci();
 	test_search();
+	test_uniq();
 
 	return puts("OK.") < 0;
 }

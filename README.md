@@ -31,6 +31,8 @@ there is no corrupt or leaked memory resulting from using this library._
 A string is represented by the type `str` that maintains a pointer to some memory containing
 the actual string. Objects of type `str` are small enough (a struct of a `const char*` and a `size_t`)
 to be cheap to pass by value. The strings are assumed to be immutable, like those in Java or Go.
+This library focusses on handling the strings, not gradually composing them like
+[StringBuffer](https://docs.oracle.com/javase/7/docs/api/java/lang/StringBuffer.html) class in Java.
 
 All string objects must be initialised. Uninitialised objects are likely to cause
 undefined behaviour. Use `str_null` for empty strings.
@@ -113,6 +115,8 @@ The string object.
 `str_null`<br>
 Empty string constant.
 
+#### String Properties
+
 `size_t str_len(const str s)`<br>
 Returns the number of bytes in the string associated with the object.
 
@@ -134,19 +138,23 @@ Returns "true" if the string object is the owner of the memory it references.
 `bool str_is_ref(const str s)`<br>
 Returns "true" if the string object does not own the memory it references.
 
-`void str_free(const str s)`<br>
-Release the memory referenced by the owning object; no-op for references.
+#### String Modification
 
 `void str_assign(str* const ps, const str s)`<br>
-Assigns the object "s" to the object pointed to by "ps". Any memory owned by the target
+Assigns the object `s` to the object pointed to by `ps`. Any memory owned by the target
 object is freed before the assignment.
 
 `str str_move(str* const ps)`<br>
 Saves the given object to a temporary, resets the source object to `str_null`, and then
 returns the saved object.
 
+`void str_dup(str* const dest, const str src)`<br>
+Creates a copy of the string `src` and assigns it to `dest`, with `str_assign` semantics.
+
 `void str_clear(str* const ps)`<br>
 Sets the target object to `str_null` after freeing any memory associated with the object.
+
+#### String Comparison
 
 `int str_cmp(const str s1, const str s2)`<br>
 Lexicographically compares the two string objects, with usual semantics.
@@ -159,6 +167,8 @@ Case-insensitive comparison of two strings, implemented using `strncasecmp(3)`.
 
 `bool str_eq_ci(const str s1, const str s2`<br>
 Returns "true" is the two strings match case-insensitively.
+
+#### String Composition
 
 `void str_cat_range(str* const dest, const str* const src, const size_t n)`<br>
 Concatenates `n` strings from the array starting at address `src`, and assigns the newly
@@ -183,6 +193,8 @@ Same as `str_join_range`, but ignores empty strings.
 `str_join_ignore_empty(dest, sep, ...)`<br>
 Same as `str_join`, but ignores empty arguments. Implemented as a macro.
 
+#### String Construction
+
 `str_lit(s)`<br>
 Constructs `str` reference object from a string literal. Implemented as a macro.
 
@@ -201,29 +213,38 @@ Creates an owning object for the specified range of bytes. The range should be s
 Creates an owning object from the given C string. The string should be safe to pass to
 `free(3)` function. Destination is assigned using `str_assign` semantics.
 
-#### sorting and searching
+#### Sorting and Searching
 
 `void str_sort(const str_cmp_func cmp, str* const array, const size_t count)`<br>
-Sorts the given array of `str` objects. A number of typically used sorting functions is
-provided (see `str.h` file).
+Sorts the given array of `str` objects. A set of typically used comparison functions is
+also provided:
+* `str_order_asc` (ascending sort)
+* `str_order_desc` (descending sort)
+* `str_order_asc_ci` (ascending case-insensitive sort)
+* `str_order_desc_ci` (descending case-insensitive sort)
 
 `const str* str_search(const str key, const str* const array, const size_t count)`<br>
 Binary search for the given key. The input array must be sorted using `str_order_asc`.
 Returns a pointer to the string matching the key, or NULL.
 
 `size_t str_uniq(str* const array, const size_t count)`<br>
-Retain only the unique strings in the given array. Returns the number of strings.
-After the call, the strings in the array are sorted, so the array is suitable for
+Retain only the unique strings in the given array, in-place, also releasing any memory
+owned by unused strings. Input array does _not_ have to be sorted. Returns the number of
+strings retained. After the call, the strings are sorted, so the array is suitable for
 binary search using `str_search()` function.
 
-#### Memory allocation
+#### Memory Management
+
+`void str_free(const str s)`<br>
+Release the memory referenced by the owning object; no-op for references.
+
 By default the library uses `malloc(3)` for memory allocations, and calls `abort(3)`
 if the allocation fails. This behaviour can be changed by hash-defining `STR_EXT_ALLOC`
 symbol and providing the following functions:
 
 `void* str_mem_alloc(size_t)`<br>
 Allocates memory like `malloc(3)` does, also handling out-of-memory situations. The library
-does not check the returned value for NULL.
+does _not_ check the returned value for NULL.
 
 `void str_mem_free(void*)`<br>
 Releases the allocated memory like `free(3)` does.

@@ -104,11 +104,11 @@ static inline
 bool str_eq(const str s1, const str s2) { return str_cmp(s1, s2) == 0; }
 
 // case-insensitive comparison
-int str_case_cmp(const str s1, const str s2);
+int str_cmp_ci(const str s1, const str s2);
 
 // case-insensitive match
 static inline
-bool str_case_eq(const str s1, const str s2) { return str_case_cmp(s1, s2) == 0; }
+bool str_eq_ci(const str s1, const str s2) { return str_cmp_ci(s1, s2) == 0; }
 
 // concatenate strings
 void str_cat_range(str* const dest, const str* const src, const size_t n);
@@ -166,6 +166,18 @@ void str_acquire_chars(str* const dest, const char* const s, size_t n);
 
 // take ownership of the given string; totally unsafe, use at your own risk
 void str_acquire(str* const dest, const char* const s);
+
+// sorting
+// comparison functions
+typedef int (*str_cmp_func)(const void*, const void*);
+
+int str_order_asc(const void* const s1, const void* const s2);
+int str_order_desc(const void* const s1, const void* const s2);
+int str_order_asc_ci(const void* const s1, const void* const s2);
+int str_order_desc_ci(const void* const s1, const void* const s2);
+
+// sort array of strings
+void str_sort(const str_cmp_func cmp, str* const array, const size_t count);
 
 #ifdef __cplusplus
 }

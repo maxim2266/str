@@ -116,21 +116,21 @@ void test_str_cmp(void)
 }
 
 static
-void test_str_case_cmp(void)
+void test_str_cmp_ci(void)
 {
 	const str s = str_lit("zzz");
 
-	assert(str_case_cmp(s, s) == 0);
-	assert(str_case_cmp(s, str_lit("zzz")) == 0);
-	assert(str_case_cmp(s, str_lit("zz")) > 0);
-	assert(str_case_cmp(s, str_lit("zzzz")) < 0);
-	assert(str_case_cmp(s, str_null) > 0);
-	assert(str_case_cmp(str_null, s) < 0);
-	assert(str_case_cmp(str_null, str_null) == 0);
-	assert(str_case_cmp(s, str_lit("ZZZ")) == 0);
-	assert(str_case_cmp(s, str_lit("ZZ")) > 0);
-	assert(str_case_cmp(s, str_lit("ZZZZ")) < 0);
-	assert(str_case_eq(s, str_lit("ZZZ")));
+	assert(str_cmp_ci(s, s) == 0);
+	assert(str_cmp_ci(s, str_lit("zzz")) == 0);
+	assert(str_cmp_ci(s, str_lit("zz")) > 0);
+	assert(str_cmp_ci(s, str_lit("zzzz")) < 0);
+	assert(str_cmp_ci(s, str_null) > 0);
+	assert(str_cmp_ci(str_null, s) < 0);
+	assert(str_cmp_ci(str_null, str_null) == 0);
+	assert(str_cmp_ci(s, str_lit("ZZZ")) == 0);
+	assert(str_cmp_ci(s, str_lit("ZZ")) > 0);
+	assert(str_cmp_ci(s, str_lit("ZZZZ")) < 0);
+	assert(str_eq_ci(s, str_lit("ZZZ")));
 
 	passed;
 }
@@ -265,6 +265,46 @@ void test_composition(void)
 	passed;
 }
 
+static
+void test_sort(void)
+{
+	str src[] = { str_lit("z"), str_lit("zzz"), str_lit("aaa"), str_lit("bbb") };
+
+	str_sort(str_order_asc, src, sizeof(src)/sizeof(src[0]));
+
+	assert(str_eq(src[0], str_lit("aaa")));
+	assert(str_eq(src[1], str_lit("bbb")));
+	assert(str_eq(src[2], str_lit("z")));
+	assert(str_eq(src[3], str_lit("zzz")));
+
+	str_sort(str_order_desc, src, sizeof(src)/sizeof(src[0]));
+
+	assert(str_eq(src[0], str_lit("zzz")));
+	assert(str_eq(src[1], str_lit("z")));
+	assert(str_eq(src[2], str_lit("bbb")));
+	assert(str_eq(src[3], str_lit("aaa")));
+}
+
+static
+void test_sort_ci(void)
+{
+	str src[] = { str_lit("ZZZ"), str_lit("zzz"), str_lit("aaa"), str_lit("AAA") };
+
+	str_sort(str_order_asc_ci, src, sizeof(src)/sizeof(src[0]));
+
+	assert(str_eq_ci(src[0], str_lit("aaa")));
+	assert(str_eq_ci(src[1], str_lit("aaa")));
+	assert(str_eq_ci(src[2], str_lit("zzz")));
+	assert(str_eq_ci(src[3], str_lit("zzz")));
+
+	str_sort(str_order_desc_ci, src, sizeof(src)/sizeof(src[0]));
+
+	assert(str_eq_ci(src[0], str_lit("zzz")));
+	assert(str_eq_ci(src[1], str_lit("zzz")));
+	assert(str_eq_ci(src[2], str_lit("aaa")));
+	assert(str_eq_ci(src[3], str_lit("aaa")));
+}
+
 int main(void)
 {
 	// tests
@@ -274,12 +314,14 @@ int main(void)
 	test_str_move();
 	test_str_ref();
 	test_str_cmp();
-	test_str_case_cmp();
+	test_str_cmp_ci();
 	test_str_acquire();
 	test_str_cat();
 	test_str_join();
 	test_str_join_ignore_empty();
 	test_composition();
+	test_sort();
+	test_sort_ci();
 
 	return puts("OK.") < 0;
 }

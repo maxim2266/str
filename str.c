@@ -98,7 +98,7 @@ int str_cmp(const str s1, const str s2)
 }
 
 // case-insensitive comparison
-int str_case_cmp(const str s1, const str s2)
+int str_cmp_ci(const str s1, const str s2)
 {
 	const size_t n1 = str_len(s1), n2 = str_len(s2);
 
@@ -298,4 +298,32 @@ void str_join_range_ignore_empty(str* const dest, const str sep, const str* cons
 	// null-terminate and acquire
 	*p = 0;
 	str_acquire_chars(dest, buff, num_bytes);
+}
+
+// sorting: comparison functions
+int str_order_asc(const void* const s1, const void* const s2)
+{
+	return str_cmp(*(const str*)s1, *(const str*)s2);
+}
+
+int str_order_desc(const void* const s1, const void* const s2)
+{
+	return -str_cmp(*(const str*)s1, *(const str*)s2);
+}
+
+int str_order_asc_ci(const void* const s1, const void* const s2)
+{
+	return str_cmp_ci(*(const str*)s1, *(const str*)s2);
+}
+
+int str_order_desc_ci(const void* const s1, const void* const s2)
+{
+	return -str_cmp_ci(*(const str*)s1, *(const str*)s2);
+}
+
+// sorting
+void str_sort(const str_cmp_func cmp, str* const array, const size_t count)
+{
+	if(array && cmp && count > 1)
+		qsort(array, count, sizeof(array[0]), cmp);
 }

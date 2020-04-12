@@ -61,6 +61,9 @@ function resets its source object to an empty string.
 
 ### Safety
 
+The `str` structure should be treated as opaque (i.e., do not attempt to directly access
+or modify the fields in this structure).
+
 As already mentioned, C language offers no help in preventing mistakes like direct assignment
 to an owning object, but at least some types of mistakes can be eliminated via careful API design.
 For example, in this library all functions producing a new owning string do not simply
@@ -151,10 +154,10 @@ Lexicographically compares the two string objects, with usual semantics.
 `bool str_eq(const str s1, const str s2)`<br>
 Returns "true" if the two strings match exactly.
 
-`int str_case_cmp(const str s1, const str s2)`<br>
+`int str_cmp_ci(const str s1, const str s2)`<br>
 Case-insensitive comparison of two strings, implemented using `strncasecmp(3)`.
 
-`bool str_case_eq(const str s1, const str s2`<br>
+`bool str_eq_ci(const str s1, const str s2`<br>
 Returns "true" is the two strings match case-insensitively.
 
 `void str_cat_range(str* const dest, const str* const src, const size_t n)`<br>
@@ -197,6 +200,12 @@ Creates an owning object for the specified range of bytes. The range should be s
 `void str_acquire(str* const dest, const char* const s)`<br>
 Creates an owning object from the given C string. The string should be safe to pass to
 `free(3)` function. Destination is assigned using `str_assign` semantics.
+
+#### sorting
+
+`void str_sort(const str_cmp_func cmp, str* const array, const size_t count)`<br>
+Sorts the given array of `str` objects. A number of typically used sorting functions is
+provided (see `str.h` file).
 
 #### Memory allocation
 By default the library uses `malloc(3)` for memory allocations, and calls `abort(3)`

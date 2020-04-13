@@ -326,38 +326,6 @@ void test_search(void)
 	passed;
 }
 
-static
-void test_uniq(void)
-{
-	str src[10] = { {0} };
-
-	str* p = src;
-
-	str_dup(p++, str_lit("zzz"));
-	str_dup(p++, str_lit("zzz"));
-	str_dup(p++, str_lit("aaa"));
-	str_dup(p++, str_lit("bbb"));
-	str_dup(p++, str_lit("aaa"));
-	str_dup(p++, str_lit("bbb"));
-	str_dup(p++, str_lit("bbb"));
-	str_dup(p++, str_lit("bbb"));
-	str_dup(p++, str_lit("aaa"));
-	str_dup(p++, str_lit("zzz"));
-
-	const size_t count = str_uniq(src, p - src);
-
-	assert(count == 3);
-	assert(str_eq(src[0], str_lit("aaa")));
-	assert(str_eq(src[1], str_lit("bbb")));
-	assert(str_eq(src[2], str_lit("zzz")));
-
-	// clean-up
-	for(size_t i = 0; i < count; ++i)
-		str_free(src[i]);
-
-	passed;
-}
-
 int main(void)
 {
 	// tests
@@ -376,7 +344,6 @@ int main(void)
 	test_sort();
 	test_sort_ci();
 	test_search();
-	test_uniq();
 
 	return puts("OK.") < 0;
 }

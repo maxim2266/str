@@ -227,12 +227,6 @@ also provided:
 Binary search for the given key. The input array must be sorted using `str_order_asc`.
 Returns a pointer to the string matching the key, or NULL.
 
-`size_t str_uniq(str* const array, const size_t count)`<br>
-Retain only the unique strings in the given array, in-place, also releasing any memory
-owned by unused strings. Input array does _not_ have to be sorted. Returns the number of
-strings retained. After the call, the strings are sorted, so the array is suitable for
-binary search using `str_search()` function.
-
 #### Memory Management
 
 `void str_free(const str s)`<br>

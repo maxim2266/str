@@ -179,9 +179,6 @@ int str_order_desc_ci(const void* const s1, const void* const s2);
 // sort array of strings
 void str_sort(const str_cmp_func cmp, str* const array, const size_t count);
 
-// retain unique strings only
-size_t str_uniq(str* const array, const size_t count);
-
 // searching
 const str* str_search(const str key, const str* const array, const size_t count);
 

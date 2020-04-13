@@ -30,9 +30,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#define _DEFAULT_SOURCE	// for strncasecmp()
+
 #include "str.h"
 
-#define _DEFAULT_SOURCE	// for strncasecmp()
 #include <string.h>
 
 // compatibility
@@ -326,36 +327,6 @@ void str_sort(const str_cmp_func cmp, str* const array, const size_t count)
 {
 	if(array && cmp && count > 1)
 		qsort(array, count, sizeof(array[0]), cmp);
-}
-
-// retain unique strings only
-size_t str_uniq(str* const array, const size_t count)
-{
-	if(!array || count == 0)
-		return 0;
-
-	if(count == 1)
-		return 1;
-
-	// O(n * log n), but without memory allocation
-	str_sort(str_order_asc, array, count);
-
-	str* p = array;
-	const str* const end = array + count;
-
-	for(str* s = array + 1; ; ++s)
-	{
-		while(s < end && str_eq(*p, *s))
-			str_clear(s++);
-
-		if(s == end)
-			break;
-
-		if(++p < s)
-			*p = str_move(s);
-	}
-
-	return p + 1 - array;
 }
 
 // searching

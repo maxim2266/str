@@ -140,6 +140,12 @@ void str_join_range_ignore_empty(str* const dest, const str sep, const str* cons
 		str_join_range_ignore_empty((dest), (sep), args, sizeof(args)/sizeof(args[0]));	\
 	} while(0)
 
+// test for prefix
+bool str_has_prefix(const str s, const str prefix);
+
+// test for suffix
+bool str_has_suffix(const str s, const str suffix);
+
 // constructors ----------------------------------------------------------------------------
 // string reference from a string literal
 #define str_lit(s)	((str){ "" s, _ref_info(sizeof(s) - 1) })
@@ -167,7 +173,7 @@ void str_acquire_chars(str* const dest, const char* const s, size_t n);
 // take ownership of the given string; totally unsafe, use at your own risk
 void str_acquire(str* const dest, const char* const s);
 
-// sorting
+// sorting and searching --------------------------------------------------------------------
 // comparison functions
 typedef int (*str_cmp_func)(const void*, const void*);
 

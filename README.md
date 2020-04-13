@@ -168,6 +168,12 @@ Case-insensitive comparison of two strings, implemented using `strncasecmp(3)`.
 `bool str_eq_ci(const str s1, const str s2`<br>
 Returns "true" is the two strings match case-insensitively.
 
+`bool str_has_prefix(const str s, const str prefix)`<br>
+Tests if the given string `s` starts with the specified prefix.
+
+`bool str_has_suffix(const str s, const str suffix)`<br>
+Tests if the given string `s` ends with the specified suffix.
+
 #### String Composition
 
 `void str_cat_range(str* const dest, const str* const src, const size_t n)`<br>

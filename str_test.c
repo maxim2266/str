@@ -326,6 +326,40 @@ void test_search(void)
 	passed;
 }
 
+static
+void test_prefix(void)
+{
+	const str s = str_lit("abcd");
+
+	assert(str_has_prefix(s, str_null));
+	assert(str_has_prefix(s, str_lit("a")));
+	assert(str_has_prefix(s, str_lit("ab")));
+	assert(str_has_prefix(s, str_lit("abc")));
+	assert(str_has_prefix(s, str_lit("abcd")));
+
+	assert(!str_has_prefix(s, str_lit("zzz")));
+	assert(!str_has_prefix(s, str_lit("abcde")));
+
+	passed;
+}
+
+static
+void test_suffix(void)
+{
+	const str s = str_lit("abcd");
+
+	assert(str_has_suffix(s, str_null));
+	assert(str_has_suffix(s, str_lit("d")));
+	assert(str_has_suffix(s, str_lit("cd")));
+	assert(str_has_suffix(s, str_lit("bcd")));
+	assert(str_has_suffix(s, str_lit("abcd")));
+
+	assert(!str_has_suffix(s, str_lit("zzz")));
+	assert(!str_has_suffix(s, str_lit("_abcd")));
+
+	passed;
+}
+
 int main(void)
 {
 	// tests
@@ -344,6 +378,8 @@ int main(void)
 	test_sort();
 	test_sort_ci();
 	test_search();
+	test_prefix();
+	test_suffix();
 
 	return puts("OK.") < 0;
 }

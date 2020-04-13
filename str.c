@@ -301,6 +301,24 @@ void str_join_range_ignore_empty(str* const dest, const str sep, const str* cons
 	str_acquire_chars(dest, buff, num_bytes);
 }
 
+// test for prefix
+bool str_has_prefix(const str s, const str prefix)
+{
+	const size_t n = str_len(prefix);
+
+	return (n == 0)
+		|| (str_len(s) >= n && memcmp(str_ptr(s), str_ptr(prefix), n) == 0);
+}
+
+// test for suffix
+bool str_has_suffix(const str s, const str suffix)
+{
+	const size_t n = str_len(suffix);
+
+	return (n == 0)
+		|| (str_len(s) >= n && memcmp(str_end(s) - n, str_ptr(suffix), n) == 0);
+}
+
 // sorting: comparison functions
 int str_order_asc(const void* const s1, const void* const s2)
 {

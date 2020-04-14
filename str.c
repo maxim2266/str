@@ -35,6 +35,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "str.h"
 
 #include <string.h>
+#include <unistd.h>
+#include <sys/uio.h>
 
 // compatibility
 #ifndef _GNU_SOURCE
@@ -357,4 +359,44 @@ const str* str_search(const str key, const str* const array, const size_t count)
 		return str_eq(key, array[0]) ? array : NULL;
 
 	return bsearch(&key, array, count, sizeof(str), str_order_asc);
+}
+
+// writing to file descriptor
+int str_write(const int fd, const str s)
+{
+	return (!str_is_empty(s) && write(fd, str_ptr(s), str_len(s)) < 0)
+		? errno
+		: 0;
+}
+
+int str_write_range(const int fd, const str* src, size_t count)
+{
+	if(!src)
+		return EINVAL;
+
+	struct iovec v[1024];
+
+	while(count > 0)
+	{
+		struct iovec* pv = v;
+
+		do
+		{
+			const str s = *src++;
+			const size_t len = str_len(s);
+
+			if(len > 0)
+				*pv++ = (struct iovec){ (void*)str_ptr(s), len };
+		} while(--count > 0 && pv < v + sizeof(v)/sizeof(v[0]));
+
+		const size_t n = pv - v;
+
+		if(n == 0)
+			break;
+
+		if(writev(fd, v, n) < 0)
+			return errno;
+	}
+
+	return 0;
 }

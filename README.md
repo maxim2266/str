@@ -233,6 +233,16 @@ also provided:
 Binary search for the given key. The input array must be sorted using `str_order_asc`.
 Returns a pointer to the string matching the key, or NULL.
 
+#### String I/O
+
+`int str_write(const int fd, const str s)`<br>
+Writes the given string `s` to the file descriptor `fd`. Returns 0 on success, or
+the value of `errno` on failure.
+
+`int str_write_range(const int fd, const str* src, size_t count)`<br>
+Writes the given range of strings to the file descriptor. Returns 0 on success, or
+the value of `errno` on failure.
+
 #### Memory Management
 
 `void str_free(const str s)`<br>

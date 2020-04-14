@@ -360,6 +360,58 @@ void test_suffix(void)
 	passed;
 }
 
+static
+void test_write(void)
+{
+	FILE* const tmp = tmpfile();
+
+	assert(tmp != NULL);
+	assert(str_write(fileno(tmp), str_lit("ZZZ")) == 0);
+
+	rewind(tmp);
+
+	char buff[32];
+
+	assert(fread(buff, 1, sizeof(buff), tmp) == 3);
+	assert(memcmp(buff, "ZZZ", 3) == 0);
+
+	fclose(tmp);
+	passed;
+}
+
+static
+void test_write_range(void)
+{
+	const str src[] = {
+		str_lit("aaa"),
+		str_lit("bbb"),
+		str_null,
+		str_lit("ccc"),
+		str_lit("ddd"),
+		str_null,
+		str_null
+	};
+
+	const size_t num_items = sizeof(src)/sizeof(src[0]);
+
+	FILE* const tmp = tmpfile();
+
+	assert(tmp != NULL);
+	assert(str_write_range(fileno(tmp), src, num_items) == 0);
+
+	rewind(tmp);
+
+	const char res[] = "aaabbbcccddd";
+	const size_t len = sizeof(res) - 1;
+	char buff[32];
+
+	assert(fread(buff, 1, sizeof(buff), tmp) == len);
+	assert(memcmp(buff, res, len) == 0);
+
+	fclose(tmp);
+	passed;
+}
+
 int main(void)
 {
 	// tests
@@ -380,6 +432,8 @@ int main(void)
 	test_search();
 	test_prefix();
 	test_suffix();
+	test_write();
+	test_write_range();
 
 	return puts("OK.") < 0;
 }

@@ -146,6 +146,10 @@ bool str_has_prefix(const str s, const str prefix);
 // test for suffix
 bool str_has_suffix(const str s, const str suffix);
 
+// write to file descriptor
+int str_write(const int fd, const str s);
+int str_write_range(const int fd, const str* src, size_t count);
+
 // constructors ----------------------------------------------------------------------------
 // string reference from a string literal
 #define str_lit(s)	((str){ "" s, _ref_info(sizeof(s) - 1) })

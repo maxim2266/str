@@ -86,6 +86,7 @@ void str_free(const str s)
 		str_mem_free((void*)s.ptr);
 }
 
+// string comparison ---------------------------------------------------------------------
 // compare two strings lexicographically
 int str_cmp(const str s1, const str s2)
 {
@@ -114,195 +115,6 @@ int str_cmp_ci(const str s1, const str s2)
 	return (n1 < n2) ? -1 : 1;
 }
 
-// create a reference to the given range of chars
-str str_ref_chars(const char* const s, const size_t n)
-{
-	return (s && n > 0) ? ((str){ s, _ref_info(n) }) : str_null;
-}
-
-str _str_ref_form_ptr(const char* const s)
-{
-	return s ? str_ref_chars(s, strlen(s)) : str_null;
-}
-
-// take ownership of the given range of chars
-void str_acquire_chars(str* const dest, const char* const s, size_t n)
-{
-	// take ownership even if the string is empty, because its memory is still allocated
-	str_assign(dest, s ? ((str){ s, _owner_info(n) }) : str_null);
-}
-
-// take ownership of the given C string
-void str_acquire(str* const dest, const char* const s)
-{
-	// take ownership even if the string is empty, because its memory is still allocated
-	str_assign(dest, s ? ((str){ s, _owner_info(strlen(s)) }) : str_null);
-}
-
-// allocate a copy of the given string
-void str_dup(str* const dest, const str s)
-{
-	const size_t n = str_len(s);
-
-	if(n == 0)
-		str_clear(dest);
-	else
-	{
-		char* const p = memcpy(str_mem_alloc(n + 1), str_ptr(s), n);
-
-		p[n] = 0;
-
-		str_acquire_chars(dest, p, n);
-	}
-}
-
-// append string
-static inline
-char* append_str(char* p, const str s)
-{
-	return mempcpy(p, str_ptr(s), str_len(s));
-}
-
-// handle simple cases for cat and join functions
-static
-bool simple_cat(str* const dest, const str* const src, const size_t n)
-{
-	if(!src || n == 0)
-	{
-		str_clear(dest);
-		return true;
-	}
-
-	if(n == 1)
-	{
-		str_dup(dest, src[0]);
-		return true;
-	}
-
-	return false;
-}
-
-static
-size_t total_length(const str* const src, const size_t n)
-{
-	size_t sum = 0;
-
-	for(size_t i = 0; i < n; ++i)
-		sum += str_len(src[i]);
-
-	return sum;
-}
-
-// concatenate strings
-void str_cat_range(str* const dest, const str* const src, const size_t n)
-{
-	// test for simple cases
-	if(simple_cat(dest, src, n))
-		return;
-
-	// calculate total length
-	const size_t num = total_length(src, n);
-
-	if(num == 0)
-	{
-		str_clear(dest);
-		return;
-	}
-
-	// allocate
-	char* const buff = str_mem_alloc(num + 1);
-
-	// copy bytes
-	char* p = buff;
-
-	for(size_t i = 0; i < n; ++i)
-		p = append_str(p, src[i]);
-
-	// null-terminate and assign
-	*p = 0;
-	str_acquire_chars(dest, buff, num);
-}
-
-// join strings
-static
-bool simple_join(str* const dest, const str sep, const str* const src, const size_t n)
-{
-	if(str_is_empty(sep))
-	{
-		str_cat_range(dest, src, n);
-		return true;
-	}
-
-	return simple_cat(dest, src, n);
-}
-
-void str_join_range(str* const dest, const str sep, const str* const src, const size_t n)
-{
-	// test for simple cases
-	if(simple_join(dest, sep, src, n))
-		return;
-
-	// calculate total length
-	const size_t num = total_length(src, n) + str_len(sep) * (n - 1);
-
-	// allocate
-	char* const buff = str_mem_alloc(num + 1);
-
-	// copy bytes
-	char* p = append_str(buff, src[0]);
-
-	for(size_t i = 1; i < n; ++i)
-		p = append_str(append_str(p, sep), src[i]);
-
-	// null-terminate and assign
-	*p = 0;
-	str_acquire_chars(dest, buff, num);
-}
-
-void str_join_range_ignore_empty(str* const dest, const str sep, const str* const src, const size_t n)
-{
-	// test for simple cases
-	if(simple_join(dest, sep, src, n))
-		return;
-
-	// calculate total length, also trimming empty strings from both ends of the range
-	// 1. find first non-empty string index
-	size_t num_bytes = str_len(src[0]), first = 0;
-
-	while(num_bytes == 0 && ++first < n)
-		num_bytes = str_len(src[first]);
-
-	if(first == n)
-	{
-		str_clear(dest);
-		return;
-	}
-
-	// 2. find last non-empty string index
-	size_t last = n;
-
-	while(str_is_empty(src[--last]));
-
-	// 3. calculate total length ignoring empty strings
-	for(size_t i = first + 1; i <= last; ++i)
-		if(!str_is_empty(src[i]))
-			num_bytes += str_len(sep) + str_len(src[i]);
-
-	// allocate
-	char* const buff = str_mem_alloc(num_bytes + 1);
-
-	// copy bytes
-	char* p = append_str(buff, src[first]);
-
-	for(size_t i = first + 1; i <= last; ++i)
-		if(!str_is_empty(src[i]))
-			p = append_str(append_str(p, sep), src[i]);
-
-	// null-terminate and acquire
-	*p = 0;
-	str_acquire_chars(dest, buff, num_bytes);
-}
-
 // test for prefix
 bool str_has_prefix(const str s, const str prefix)
 {
@@ -319,6 +131,259 @@ bool str_has_suffix(const str s, const str suffix)
 
 	return (n == 0)
 		|| (str_len(s) >= n && memcmp(str_end(s) - n, str_ptr(suffix), n) == 0);
+}
+
+// string constructors -----------------------------------------------------------------
+// create a reference to the given range of chars
+str str_ref_chars(const char* const s, const size_t n)
+{
+	return (s && n > 0) ? ((str){ s, _ref_info(n) }) : str_null;
+}
+
+str _str_ref_form_ptr(const char* const s)
+{
+	return s ? str_ref_chars(s, strlen(s)) : str_null;
+}
+
+// take ownership of the given range of chars
+str str_acquire_chars(const char* const s, size_t n)
+{
+	// take ownership even if the string is empty, because its memory is still allocated
+	return s ? ((str){ s, _owner_info(n) }) : str_null;
+}
+
+// take ownership of the given C string
+str str_acquire(const char* const s)
+{
+	// take ownership even if the string is empty, because its memory is still allocated
+	return s ? ((str){ s, _owner_info(strlen(s)) }) : str_null;
+}
+
+// allocate a copy of the given string
+void _str_dup(str* const dest, const str s)
+{
+	const size_t n = str_len(s);
+
+	if(n == 0)
+		str_clear(dest);
+	else
+	{
+		char* const p = memcpy(str_mem_alloc(n + 1), str_ptr(s), n);
+
+		p[n] = 0;
+		str_assign(dest, str_acquire_chars(p, n));
+	}
+}
+
+// string composition -----------------------------------------------------------------------
+// append string
+static inline
+char* append_str(char* p, const str s)
+{
+	return mempcpy(p, str_ptr(s), str_len(s));
+}
+
+static
+size_t total_length(const str* src, size_t count)
+{
+	size_t sum = 0;
+
+	for(; count > 0; --count)
+		sum += str_len(*src++);
+
+	return sum;
+}
+
+// concatenate strings
+void _str_cat_range(str* const dest, const str* src, size_t count)
+{
+	if(!src)
+	{
+		str_clear(dest);
+		return;
+	}
+
+	// calculate total length
+	const size_t num = total_length(src, count);
+
+	if(num == 0)
+	{
+		str_clear(dest);
+		return;
+	}
+
+	// allocate
+	char* const buff = str_mem_alloc(num + 1);
+
+	// copy bytes
+	char* p = buff;
+
+	for(; count > 0; --count)
+		p = append_str(p, *src++);
+
+	// null-terminate and assign
+	*p = 0;
+	str_assign(dest, str_acquire_chars(buff, num));
+}
+
+// writing to file descriptor
+int _str_cpy_to_fd(const int fd, const str s)
+{
+	const size_t n = str_len(s);
+
+	return (n > 0 && write(fd, str_ptr(s), n) < 0) ? errno : 0;
+}
+
+// writing to byte stream
+int _str_cpy_to_stream(FILE* const stream, const str s)
+{
+	const size_t n = str_len(s);
+
+	return (n > 0 && fwrite(str_ptr(s), 1, n, stream) < n) ? EIO : 0;
+}
+
+static
+struct iovec* vec_append(struct iovec* pv, const str s)
+{
+	*pv = (struct iovec){ (void*)str_ptr(s), str_len(s) };
+
+	return pv + 1;
+}
+
+static
+struct iovec* vec_append_nonempty(struct iovec* pv, const str s)
+{
+	return str_is_empty(s) ? pv : vec_append(pv, s);
+}
+
+#define IOVEC_SIZE 1024
+
+int _str_cat_range_to_fd(const int fd, const str* src, size_t count)
+{
+	if(!src)
+		return 0;
+
+	struct iovec v[IOVEC_SIZE];
+
+	while(count > 0)
+	{
+		struct iovec* p = vec_append_nonempty(v, *src++);
+
+		while(--count > 0 && p < v + IOVEC_SIZE)
+			p = vec_append_nonempty(p, *src++);
+
+		const size_t n = p - v;
+
+		if(n == 0)
+			break;
+
+		if(writev(fd, v, n) < 0)
+			return errno;
+	}
+
+	return 0;
+}
+
+int _str_cat_range_to_stream(FILE* const stream, const str* src, size_t count)
+{
+	if(!src)
+		return 0;
+
+	int err = 0;
+
+	for(; count > 0 && err == 0; --count)
+		err = str_cpy(stream, *src++);
+
+	return err;
+}
+
+// join strings
+void _str_join_range(str* const dest, const str sep, const str* src, size_t count)
+{
+	// test for simple cases
+	if(str_is_empty(sep))
+	{
+		str_cat_range(dest, src, count);
+		return;
+	}
+
+	if(!src || count == 0)
+	{
+		str_clear(dest);
+		return;
+	}
+
+	if(count == 1)
+	{
+		str_cpy(dest, *src);
+		return;
+	}
+
+	// calculate total length
+	const size_t num = total_length(src, count) + str_len(sep) * (count - 1);
+
+	// allocate
+	char* const buff = str_mem_alloc(num + 1);
+
+	// copy bytes
+	char* p = append_str(buff, *src++);
+
+	while(--count > 0)
+		p = append_str(append_str(p, sep), *src++);
+
+	// null-terminate and assign
+	*p = 0;
+	str_assign(dest, str_acquire_chars(buff, num));
+}
+
+int _str_join_range_to_fd(const int fd, const str sep, const str* src, size_t count)
+{
+	if(str_is_empty(sep))
+		return str_cat_range(fd, src, count);
+
+	if(!src || count == 0)
+		return 0;
+
+	if(count == 1)
+		return str_cpy(fd, *src);
+
+	struct iovec v[IOVEC_SIZE];
+
+	struct iovec* p = vec_append_nonempty(v, *src++);
+
+	for(--count; count > 0; p = v)
+	{
+		p = vec_append_nonempty(vec_append(p, sep), *src++);
+
+		while(--count > 0 && p < v + IOVEC_SIZE - 1)
+			p = vec_append_nonempty(vec_append(p, sep), *src++);
+
+		const size_t n = p - v;
+
+		if(n == 0)
+			break;
+
+		if(writev(fd, v, n) < 0)
+			return errno;
+	}
+
+	return 0;
+}
+
+int _str_join_range_to_stream(FILE* const stream, const str sep, const str* src, size_t count)
+{
+	if(str_is_empty(sep))
+		return str_cat_range(stream, src, count);
+
+	if(!src || count == 0)
+		return 0;
+
+	int err = str_cpy(stream, *src++);
+
+	while(--count > 0 && err == 0)
+		err = str_cat(stream, sep, *src++);
+
+	return err;
 }
 
 // sorting: comparison functions
@@ -361,42 +426,3 @@ const str* str_search(const str key, const str* const array, const size_t count)
 	return bsearch(&key, array, count, sizeof(str), str_order_asc);
 }
 
-// writing to file descriptor
-int str_write(const int fd, const str s)
-{
-	return (!str_is_empty(s) && write(fd, str_ptr(s), str_len(s)) < 0)
-		? errno
-		: 0;
-}
-
-int str_write_range(const int fd, const str* src, size_t count)
-{
-	if(!src)
-		return EINVAL;
-
-	struct iovec v[1024];
-
-	while(count > 0)
-	{
-		struct iovec* pv = v;
-
-		do
-		{
-			const str s = *src++;
-			const size_t len = str_len(s);
-
-			if(len > 0)
-				*pv++ = (struct iovec){ (void*)str_ptr(s), len };
-		} while(--count > 0 && pv < v + sizeof(v)/sizeof(v[0]));
-
-		const size_t n = pv - v;
-
-		if(n == 0)
-			break;
-
-		if(writev(fd, v, n) < 0)
-			return errno;
-	}
-
-	return 0;
-}

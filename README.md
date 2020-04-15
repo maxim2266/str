@@ -11,15 +11,37 @@ with existing libraries, so decided to make the right one, once and forever. ðŸ™
 Just clone the project and copy (or symlink) the files `str.h` and `str.c` into your project,
 but please respect the [license](LICENSE).
 
-## Code Example
+## Code Examples
+
+String composition:
+
 ```C
 str s = str_null;
 
-str_join(&s, str_lit(", "), str_lit("Here"), str_lit("there"), str_lit("and everywhere"));
+str_join(&s, str_lit(", "),
+		str_lit("Here"),
+		str_lit("there"),
+		str_lit("and everywhere"));
+
 str_cat(&s, s, str_lit("..."));
 
 assert(str_eq(s, str_lit("Here, there, and everywhere...")));
 str_free(s);
+```
+
+Composing strings and writing to a file:
+
+```C
+FILE* const stream = fopen(...);
+
+int err = str_join(stream, str_lit(", "),
+					str_lit("Here"),
+					str_lit("there"),
+					str_lit("and everywhere..."));
+
+if(err != 0) { /* handle the error */ }
+
+fclose(stream);
 ```
 
 ## User Guide
@@ -30,25 +52,33 @@ there is no corrupt or leaked memory resulting from using this library._
 
 A string is represented by the type `str` that maintains a pointer to some memory containing
 the actual string. Objects of type `str` are small enough (a struct of a `const char*` and a `size_t`)
-to be cheap to pass by value. The strings are assumed to be immutable, like those in Java or Go.
-This library focusses on handling the strings, not gradually composing them like
-[StringBuffer](https://docs.oracle.com/javase/7/docs/api/java/lang/StringBuffer.html) class in Java.
+to be cheap to create, copy (pass by value), and move. The `str` structure should be
+treated as opaque (i.e., do not attempt to directly access or modify the fields in this structure).
+The strings are assumed to be immutable, like those in Java or Go, but only by means of `const char*`
+pointers, so it is actually possible to write to such a string, although the required type
+cast to `char*` offers at least some (mostly psychological) protection from modifying a string
+by mistake.
+
+This library focusses only on handling strings, not gradually composing them like
+[StringBuffer](https://docs.oracle.com/javase/7/docs/api/java/lang/StringBuffer.html)
+class in Java.
 
 All string objects must be initialised. Uninitialised objects are likely to cause
-undefined behaviour. Use `str_null` for empty strings.
+undefined behaviour. Use the provided constructors, or `str_null` for empty strings.
 
 There are two kinds of `str` objects: those actually owning the memory they point to, and
 non-owning references. This property can be queried using `str_is_owner` and `str_is_ref`
 functions, otherwise such objects are indistinguishable.
 
-String references are safe to copy and assign to each other, as long as the memory
-they refer to is valid. They do not need to be free'd. `str_free` is a no-op for reference
-objects. A reference object can be cheaply created from almost anything that looks like
-a C string, including string literals.
+Non-owning string objects are safe to copy and assign to each other, as long as the memory
+they refer to is valid. They do not need to be freed. `str_free` is a no-op for reference
+objects. A reference object can be cheaply created from a C string, a string literal,
+or just a range of bytes.
 
-Owning objects require special care, in particular:
-* It is a good idea to have only one owning object per each allocated string, but such a string
-can have many references, as long as those references do not outlive the owning object.
+Owning objects require special treatment, in particular:
+* It is a good idea to have only one owning object per each allocated string, but such
+a string can have many references to its underlying string, as long as those references do not
+outlive the owning object.
 Sometimes this rule may be relaxed for code clarity, like in the above example where
 the owning object is passed directly to a function, but only if the function does not
 store or release the object. When in doubt pass such an object via `str_ref`.
@@ -61,28 +91,47 @@ some point, either directly by using `str_free` function, or indirectly by assig
 * An owning object can be passed over to another location by using `str_move` function. The
 function resets its source object to an empty string.
 
-### Safety
-
-The `str` structure should be treated as opaque (i.e., do not attempt to directly access
-or modify the fields in this structure).
-
-As already mentioned, C language offers no help in preventing mistakes like direct assignment
-to an owning object, but at least some types of mistakes can be eliminated via careful API design.
-For example, in this library all functions producing a new owning string do not simply
-return the new string, but instead they assign the result through a pointer to the destination
-object. Simply returning a new string would provoke people to assign the result directly,
-like `s = str_cat(...);`, potentially leaking memory, or to pass the result to another function,
-like `str_cat(str_cat(...), ...)`, where the memory allocated by the inner `str_cat` invocation
-will certainly be lost. Assigning via a pointer makes these errors less likely.
-
-In this library all strings are assumed to be immutable, but only by means of `const char*`
-pointers, so it is actually possible to write to such a string, although the required type
-cast to `char*` offers at least some (mostly psychological) protection from modifying a string
-by mistake.
-
-Another issue is that it is technically possible to create a reference to a string that is not
+It is technically possible to create a reference to a string that is not
 null-terminated. The library accepts strings without null-terminators, but every new string
 allocated by the library is guaranteed to be null-terminated.
+
+### String Construction
+
+A string object can be constructed form any C string, string literal, or a range of bytes.
+The provided constructors are computationally cheap to apply. Depending on the constructor,
+the new object can either own the actual string it refers to, or be a non-owning reference.
+Constructors themselves do not allocate any memory.
+
+### String Object Properties
+
+Querying a property of a string object (like the length of the string via `str_len`) is a
+cheap operation.
+
+### Assigning and Moving String Objects
+
+C language does not allow for operator overloading, so this library provides a function
+`str_assign` that takes a string object and assigns it to the destination object, freeing
+any memory owned by the destination. It is generally recommended to use this function
+everywhere outside object initialisation.
+
+An existing object can be moved over to another location via `str_move` function.
+The function resets the source object to `str_null` to guarantee the correct move semantics.
+The value returned by `str_move` may be either used to initialise a new object, or
+assigned to an existing object using `str_assign`.
+
+### String Composition and Generic Destination
+
+String composition [functions](#string-composition) can write their results to different
+destinations, depending on the _type_ of their `dest` parameter:
+
+* `str*`: result is written to allocated memory and the reference to it is stored in the string object;
+* `int`: result is written to the file descriptor;
+* `FILE*` result is written to the file stream.
+
+When writing to a file descriptor or a stream, the composition functions return integer 0
+on success, or the value of `errno` as retrieved at the point of failure.
+
+### Detailed Example
 
 Just to make things more clear, here is the same code as in the example above, but with comments:
 ```C
@@ -90,8 +139,11 @@ Just to make things more clear, here is the same code as in the example above, b
 str s = str_null;
 
 // join the given string literals around the separator (second parameter),
-// storing the result in "s" (first parameter)
-str_join(&s, str_lit(", "), str_lit("Here"), str_lit("there"), str_lit("and everywhere"));
+// storing the result in object "s" (first parameter)
+str_join(&s, str_lit(", "),
+		str_lit("Here"),
+		str_lit("there"),
+		str_lit("and everywhere"));
 
 // create a new string concatenating "s" and a literal; the function does not modify its
 // destination object "s" before the result is computed, also freeing the destination
@@ -100,7 +152,7 @@ str_join(&s, str_lit(", "), str_lit("Here"), str_lit("there"), str_lit("and ever
 // safe to do so because this particular function does not store or release its arguments.
 str_cat(&s, s, str_lit("..."));
 
-// just check that we have got the expected result
+// check that we have got the expected result
 assert(str_eq(s, str_lit("Here, there, and everywhere...")));
 
 // finally, free the memory allocated for the string
@@ -118,13 +170,13 @@ Empty string constant.
 #### String Properties
 
 `size_t str_len(const str s)`<br>
-Returns the number of bytes in the string associated with the object.
+Returns the number of bytes in the string referenced by the object.
 
 `const char* str_ptr(const str s)`<br>
-Returns a pointer to the first byte of the string associated with the object. The pointer is never NULL.
+Returns a pointer to the first byte of the string referenced by the object. The pointer is never NULL.
 
 `const char* str_end(const str s)`<br>
-Returns a pointer to the next byte past the end of the string associated with the object.
+Returns a pointer to the next byte past the end of the string referenced by the object.
 The pointer is never NULL, but it is not guaranteed to point to any valid byte or location.
 For C strings it points to the terminating null character. For any given string `s` the following
 condition is always satisfied: `str_end(s) == str_ptr(s) + str_len(s)`.
@@ -138,6 +190,26 @@ Returns "true" if the string object is the owner of the memory it references.
 `bool str_is_ref(const str s)`<br>
 Returns "true" if the string object does not own the memory it references.
 
+#### String Construction
+
+`str str_lit(s)`<br>
+Constructs a non-owning object from a string literal. Implemented as a macro.
+
+`str str_ref(s)`<br>
+Constructs a non-owning object from either a null-terminated C string, or another `str` object.
+Implemented as a macro.
+
+`str str_ref_chars(const char* const s, const size_t n)`<br>
+Constructs a non-owning object referencing the given range of bytes.
+
+`str str_acquire_chars(const char* const s, size_t n)`<br>
+Constructs an owning object for the specified range of bytes. The range should be safe
+to pass to `free(3)` function.
+
+`str str_acquire(const char* const s)`<br>
+Constructs an owning object from the given C string. The string should be safe to pass to
+`free(3)` function.
+
 #### String Modification
 
 `void str_assign(str* const ps, const str s)`<br>
@@ -148,11 +220,8 @@ object is freed before the assignment.
 Saves the given object to a temporary, resets the source object to `str_null`, and then
 returns the saved object.
 
-`void str_dup(str* const dest, const str src)`<br>
-Creates a copy of the string `src` and assigns it to `dest`, with `str_assign` semantics.
-
 `void str_clear(str* const ps)`<br>
-Sets the target object to `str_null` after freeing any memory associated with the object.
+Sets the target object to `str_null` after freeing any memory owned by the target.
 
 #### String Comparison
 
@@ -176,54 +245,31 @@ Tests if the given string `s` ends with the specified suffix.
 
 #### String Composition
 
-`void str_cat_range(str* const dest, const str* const src, const size_t n)`<br>
-Concatenates `n` strings from the array starting at address `src`, and assigns the newly
-allocated string to `dest`, with `str_assign` semantics.
+`str_cpy(dest, const str src)`<br>
+Copies the source string referenced by `src`
+to the [generic](#string-composition-and-generic-destination) destination `dest`.
+
+`str_cat_range(dest, const str* src, size_t count)`<br>
+Concatenates `count` strings from the array starting at address `src`, and writes
+the result to the [generic](#string-composition-and-generic-destination) destination `dest`.
 
 `str_cat(dest, ...)`<br>
-Concatenates a variable list of `str` arguments into `dest`, with `str_assign` semantics.
-Implemented as a macro.
+Concatenates a variable list of `str` arguments, and writes the result to the
+[generic](#string-composition-and-generic-destination) destination `dest`.
 
-`void str_join_range(str* const dest, const str sep, const str* const src, const size_t n)`<br>
-Joins around `sep` the `n` strings from the array starting at address `src`, and assigns
-the newly allocated string to `dest`, with `str_assign` semantics.
+`str_join_range(dest, const str sep, const str* src, size_t count)`<br>
+Joins around `sep` the `count` strings from the array starting at address `src`, and writes
+the result to the [generic](#string-composition-and-generic-destination) destination `dest`.
 
 `str_join(dest, sep, ...)`<br>
-Joins around `sep` the variable list of `str` arguments, and assigns
-the newly allocated string to `dest`, with `str_assign` semantics.
-Implemented as a macro.
-
-`void str_join_range_ignore_empty(str* const dest, const str sep, const str* const src, const size_t n)`<br>
-Same as `str_join_range`, but ignores empty strings.
-
-`str_join_ignore_empty(dest, sep, ...)`<br>
-Same as `str_join`, but ignores empty arguments. Implemented as a macro.
-
-#### String Construction
-
-`str_lit(s)`<br>
-Constructs `str` reference object from a string literal. Implemented as a macro.
-
-`str_ref(s)`<br>
-Constructs string reference object from either a null-terminated C string, or another `str` object.
-Implemented as a macro.
-
-`str str_ref_chars(const char* const s, const size_t n)`<br>
-Returns a non-owning object referencing the given range of bytes.
-
-`void str_acquire_chars(str* const dest, const char* const s, size_t n)`<br>
-Creates an owning object for the specified range of bytes. The range should be safe to pass to
-`free(3)` function. Destination is assigned using `str_assign` semantics.
-
-`void str_acquire(str* const dest, const char* const s)`<br>
-Creates an owning object from the given C string. The string should be safe to pass to
-`free(3)` function. Destination is assigned using `str_assign` semantics.
+Joins around `sep` the variable list of `str` arguments, and writes the result to the
+[generic](#string-composition-and-generic-destination) destination `dest`.
 
 #### Sorting and Searching
 
 `void str_sort(const str_cmp_func cmp, str* const array, const size_t count)`<br>
-Sorts the given array of `str` objects. A set of typically used comparison functions is
-also provided:
+Sorts the given array of `str` objects using the given comparison function. A number
+of typically used comparison functions is also provided:
 * `str_order_asc` (ascending sort)
 * `str_order_desc` (descending sort)
 * `str_order_asc_ci` (ascending case-insensitive sort)
@@ -233,31 +279,21 @@ also provided:
 Binary search for the given key. The input array must be sorted using `str_order_asc`.
 Returns a pointer to the string matching the key, or NULL.
 
-#### String I/O
-
-`int str_write(const int fd, const str s)`<br>
-Writes the given string `s` to the file descriptor `fd`. Returns 0 on success, or
-the value of `errno` on failure.
-
-`int str_write_range(const int fd, const str* src, size_t count)`<br>
-Writes the given range of strings to the file descriptor. Returns 0 on success, or
-the value of `errno` on failure.
-
 #### Memory Management
 
 `void str_free(const str s)`<br>
 Release the memory referenced by the owning object; no-op for references.
 
 By default the library uses `malloc(3)` for memory allocations, and calls `abort(3)`
-if the allocation fails. This behaviour can be changed by hash-defining `STR_EXT_ALLOC`
-symbol and providing the following functions:
+if the allocation fails. This behaviour can be changed by compiling the library with
+the preprocessor symbol `STR_EXT_ALLOC` defined, and providing the following functions:
 
 `void* str_mem_alloc(size_t)`<br>
 Allocates memory like `malloc(3)` does, also handling out-of-memory situations. The library
-does _not_ check the returned value for NULL.
+does _not_ check the returned pointer for NULL.
 
 `void str_mem_free(void*)`<br>
-Releases the allocated memory like `free(3)` does.
+Equivalent of `free(3)` function.
 
 ### Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3

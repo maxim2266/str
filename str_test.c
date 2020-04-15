@@ -3,7 +3,6 @@
 #include "str.h"
 
 #include <string.h>
-#include <stdio.h>
 
 // make sure assert is always enabled
 #ifdef NDEBUG
@@ -32,7 +31,7 @@ void test_str_dup(void)
 {
 	str s = str_null;
 
-	str_dup(&s, str_lit("ZZZ"));
+	str_cpy(&s, str_lit("ZZZ"));
 
 	assert(str_len(s) == 3);
 	assert(!str_is_ref(s));
@@ -49,7 +48,7 @@ void test_str_clear(void)
 {
 	str s = str_null;
 
-	str_dup(&s, str_lit("ZZZ"));
+	str_cpy(&s, str_lit("ZZZ"));
 
 	assert(str_len(s) == 3);
 	assert(str_is_owner(s));
@@ -68,7 +67,7 @@ void test_str_move(void)
 {
 	str s1 = str_null;
 
-	str_dup(&s1, str_lit("ZZZ"));
+	str_cpy(&s1, str_lit("ZZZ"));
 
 	str s2 = str_move(&s1);
 
@@ -138,9 +137,7 @@ void test_str_cmp_ci(void)
 static
 void test_str_acquire(void)
 {
-	str s = str_null;
-
-	str_acquire(&s, strdup("ZZZ"));
+	str s = str_acquire(strdup("ZZZ"));
 
 	assert(str_is_owner(s));
 	assert(str_eq(s, str_lit("ZZZ")));
@@ -205,43 +202,6 @@ void test_str_join(void)
 	assert(*str_end(s) == 0);
 
 	str_join(&s, str_null);	// this simply clears the target string
-
-	assert(str_is_empty(s));
-	assert(str_is_ref(s));
-
-	passed;
-}
-
-static
-void test_str_join_ignore_empty(void)
-{
-	str s = str_null;
-
-	str_join_ignore_empty(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
-
-	assert(str_eq(s, str_lit("AAA_BBB_CCC")));
-	assert(str_is_owner(s));
-	assert(*str_end(s) == 0);
-
-	str_join_ignore_empty(&s, str_lit("_"), str_lit("AAA"), str_null, str_lit("CCC"));
-
-	assert(str_eq(s, str_lit("AAA_CCC")));
-	assert(str_is_owner(s));
-	assert(*str_end(s) == 0);
-
-	str_join_ignore_empty(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_null);
-
-	assert(str_eq(s, str_lit("AAA_BBB")));
-	assert(str_is_owner(s));
-	assert(*str_end(s) == 0);
-
-	str_join_ignore_empty(&s, str_lit("_"), str_null, str_lit("BBB"), str_lit("CCC"));
-
-	assert(str_eq(s, str_lit("BBB_CCC")));
-	assert(str_is_owner(s));
-	assert(*str_end(s) == 0);
-
-	str_join_ignore_empty(&s, str_null);	// this simply clears the target string
 
 	assert(str_is_empty(s));
 	assert(str_is_ref(s));
@@ -361,12 +321,12 @@ void test_suffix(void)
 }
 
 static
-void test_write(void)
+void test_cpy_to_fd(void)
 {
 	FILE* const tmp = tmpfile();
 
 	assert(tmp != NULL);
-	assert(str_write(fileno(tmp), str_lit("ZZZ")) == 0);
+	assert(str_cpy(fileno(tmp), str_lit("ZZZ")) == 0);
 
 	rewind(tmp);
 
@@ -380,7 +340,27 @@ void test_write(void)
 }
 
 static
-void test_write_range(void)
+void test_cpy_to_stream(void)
+{
+	FILE* const tmp = tmpfile();
+
+	assert(tmp != NULL);
+	assert(str_cpy(tmp, str_lit("ZZZ")) == 0);
+
+	assert(fflush(tmp) == 0);
+	rewind(tmp);
+
+	char buff[32];
+
+	assert(fread(buff, 1, sizeof(buff), tmp) == 3);
+	assert(memcmp(buff, "ZZZ", 3) == 0);
+
+	fclose(tmp);
+	passed;
+}
+
+static
+void test_cat_range_to_fd(void)
 {
 	const str src[] = {
 		str_lit("aaa"),
@@ -397,11 +377,88 @@ void test_write_range(void)
 	FILE* const tmp = tmpfile();
 
 	assert(tmp != NULL);
-	assert(str_write_range(fileno(tmp), src, num_items) == 0);
+	assert(str_cat_range(fileno(tmp), src, num_items) == 0);
 
 	rewind(tmp);
 
 	const char res[] = "aaabbbcccddd";
+	const size_t len = sizeof(res) - 1;
+	char buff[32];
+
+	assert(fread(buff, 1, sizeof(buff), tmp) == len);
+	assert(memcmp(buff, res, len) == 0);
+
+	fclose(tmp);
+	passed;
+}
+
+static
+void test_cat_range_to_stream(void)
+{
+	const str src[] = {
+		str_lit("aaa"),
+		str_lit("bbb"),
+		str_null,
+		str_lit("ccc"),
+		str_lit("ddd"),
+		str_null,
+		str_null
+	};
+
+	const size_t num_items = sizeof(src)/sizeof(src[0]);
+
+	FILE* const tmp = tmpfile();
+
+	assert(tmp != NULL);
+	assert(str_cat_range(tmp, src, num_items) == 0);
+
+	assert(fflush(tmp) == 0);
+	rewind(tmp);
+
+	const char res[] = "aaabbbcccddd";
+	const size_t len = sizeof(res) - 1;
+	char buff[32];
+
+	assert(fread(buff, 1, sizeof(buff), tmp) == len);
+	assert(memcmp(buff, res, len) == 0);
+
+	fclose(tmp);
+	passed;
+}
+
+static
+void test_str_join_to_fd(void)
+{
+	FILE* const tmp = tmpfile();
+
+	assert(tmp != NULL);
+	assert(str_join(fileno(tmp), str_lit("_"), str_lit("aaa"), str_lit("bbb"), str_lit("ccc")) == 0);
+
+	rewind(tmp);
+
+	const char res[] = "aaa_bbb_ccc";
+	const size_t len = sizeof(res) - 1;
+	char buff[32];
+
+	assert(fread(buff, 1, sizeof(buff), tmp) == len);
+	assert(memcmp(buff, res, len) == 0);
+
+	fclose(tmp);
+	passed;
+}
+
+static
+void test_str_join_to_stream(void)
+{
+	FILE* const tmp = tmpfile();
+
+	assert(tmp != NULL);
+	assert(str_join(tmp, str_lit("_"), str_lit("aaa"), str_lit("bbb"), str_lit("ccc")) == 0);
+
+	assert(fflush(tmp) == 0);
+	rewind(tmp);
+
+	const char res[] = "aaa_bbb_ccc";
 	const size_t len = sizeof(res) - 1;
 	char buff[32];
 
@@ -425,15 +482,18 @@ int main(void)
 	test_str_acquire();
 	test_str_cat();
 	test_str_join();
-	test_str_join_ignore_empty();
 	test_composition();
 	test_sort();
 	test_sort_ci();
 	test_search();
 	test_prefix();
 	test_suffix();
-	test_write();
-	test_write_range();
+	test_cpy_to_fd();
+	test_cpy_to_stream();
+	test_cat_range_to_fd();
+	test_cat_range_to_stream();
+	test_str_join_to_fd();
+	test_str_join_to_stream();
 
 	return puts("OK.") < 0;
 }

@@ -19,9 +19,9 @@ String composition:
 str s = str_null;
 
 str_join(&s, str_lit(", "),
-		str_lit("Here"),
-		str_lit("there"),
-		str_lit("and everywhere"));
+         str_lit("Here"),
+         str_lit("there"),
+         str_lit("and everywhere"));
 
 str_cat(&s, s, str_lit("..."));
 
@@ -35,9 +35,9 @@ Composing strings and writing to a file:
 FILE* const stream = fopen(...);
 
 int err = str_join(stream, str_lit(", "),
-					str_lit("Here"),
-					str_lit("there"),
-					str_lit("and everywhere..."));
+                   str_lit("Here"),
+                   str_lit("there"),
+                   str_lit("and everywhere..."));
 
 if(err != 0) { /* handle the error */ }
 
@@ -141,9 +141,9 @@ str s = str_null;
 // join the given string literals around the separator (second parameter),
 // storing the result in object "s" (first parameter)
 str_join(&s, str_lit(", "),
-		str_lit("Here"),
-		str_lit("there"),
-		str_lit("and everywhere"));
+         str_lit("Here"),
+         str_lit("there"),
+         str_lit("and everywhere"));
 
 // create a new string concatenating "s" and a literal; the function does not modify its
 // destination object "s" before the result is computed, also freeing the destination

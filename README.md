@@ -267,7 +267,7 @@ Joins around `sep` the variable list of `str` arguments, and writes the result t
 
 #### Sorting and Searching
 
-`void str_sort(const str_cmp_func cmp, str* const array, const size_t count)`<br>
+`void str_sort_range(const str_cmp_func cmp, str* const array, const size_t count)`<br>
 Sorts the given array of `str` objects using the given comparison function. A number
 of typically used comparison functions is also provided:
 * `str_order_asc` (ascending sort)
@@ -275,7 +275,7 @@ of typically used comparison functions is also provided:
 * `str_order_asc_ci` (ascending case-insensitive sort)
 * `str_order_desc_ci` (descending case-insensitive sort)
 
-`const str* str_search(const str key, const str* const array, const size_t count)`<br>
+`const str* str_search_range(const str key, const str* const array, const size_t count)`<br>
 Binary search for the given key. The input array must be sorted using `str_order_asc`.
 Returns a pointer to the string matching the key, or NULL.
 

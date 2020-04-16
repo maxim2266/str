@@ -205,10 +205,10 @@ int str_order_asc_ci(const void* const s1, const void* const s2);
 int str_order_desc_ci(const void* const s1, const void* const s2);
 
 // sort array of strings
-void str_sort(const str_cmp_func cmp, str* const array, const size_t count);
+void str_sort_range(const str_cmp_func cmp, str* const array, const size_t count);
 
 // searching
-const str* str_search(const str key, const str* const array, const size_t count);
+const str* str_search_range(const str key, const str* const array, const size_t count);
 
 #ifdef __cplusplus
 }

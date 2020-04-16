@@ -230,14 +230,14 @@ void test_sort(void)
 {
 	str src[] = { str_lit("z"), str_lit("zzz"), str_lit("aaa"), str_lit("bbb") };
 
-	str_sort(str_order_asc, src, sizeof(src)/sizeof(src[0]));
+	str_sort_range(str_order_asc, src, sizeof(src)/sizeof(src[0]));
 
 	assert(str_eq(src[0], str_lit("aaa")));
 	assert(str_eq(src[1], str_lit("bbb")));
 	assert(str_eq(src[2], str_lit("z")));
 	assert(str_eq(src[3], str_lit("zzz")));
 
-	str_sort(str_order_desc, src, sizeof(src)/sizeof(src[0]));
+	str_sort_range(str_order_desc, src, sizeof(src)/sizeof(src[0]));
 
 	assert(str_eq(src[0], str_lit("zzz")));
 	assert(str_eq(src[1], str_lit("z")));
@@ -252,14 +252,14 @@ void test_sort_ci(void)
 {
 	str src[] = { str_lit("ZZZ"), str_lit("zzz"), str_lit("aaa"), str_lit("AAA") };
 
-	str_sort(str_order_asc_ci, src, sizeof(src)/sizeof(src[0]));
+	str_sort_range(str_order_asc_ci, src, sizeof(src)/sizeof(src[0]));
 
 	assert(str_eq_ci(src[0], str_lit("aaa")));
 	assert(str_eq_ci(src[1], str_lit("aaa")));
 	assert(str_eq_ci(src[2], str_lit("zzz")));
 	assert(str_eq_ci(src[3], str_lit("zzz")));
 
-	str_sort(str_order_desc_ci, src, sizeof(src)/sizeof(src[0]));
+	str_sort_range(str_order_desc_ci, src, sizeof(src)/sizeof(src[0]));
 
 	assert(str_eq_ci(src[0], str_lit("zzz")));
 	assert(str_eq_ci(src[1], str_lit("zzz")));
@@ -275,13 +275,13 @@ void test_search(void)
 	str src[] = { str_lit("z"), str_lit("zzz"), str_lit("aaa"), str_lit("bbb") };
 	const size_t count = sizeof(src)/sizeof(src[0]);
 
-	str_sort(str_order_asc, src, count);
+	str_sort_range(str_order_asc, src, count);
 
-	assert(str_search(src[0], src, count) == &src[0]);
-	assert(str_search(src[1], src, count) == &src[1]);
-	assert(str_search(src[2], src, count) == &src[2]);
-	assert(str_search(src[3], src, count) == &src[3]);
-	assert(str_search(str_lit("xxx"), src, count) == NULL);
+	assert(str_search_range(src[0], src, count) == &src[0]);
+	assert(str_search_range(src[1], src, count) == &src[1]);
+	assert(str_search_range(src[2], src, count) == &src[2]);
+	assert(str_search_range(src[3], src, count) == &src[3]);
+	assert(str_search_range(str_lit("xxx"), src, count) == NULL);
 
 	passed;
 }

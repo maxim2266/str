@@ -408,14 +408,14 @@ int str_order_desc_ci(const void* const s1, const void* const s2)
 }
 
 // sorting
-void str_sort(const str_cmp_func cmp, str* const array, const size_t count)
+void str_sort_range(const str_cmp_func cmp, str* const array, const size_t count)
 {
 	if(array && cmp && count > 1)
 		qsort(array, count, sizeof(array[0]), cmp);
 }
 
 // searching
-const str* str_search(const str key, const str* const array, const size_t count)
+const str* str_search_range(const str key, const str* const array, const size_t count)
 {
 	if(!array || count == 0)
 		return NULL;
@@ -425,4 +425,3 @@ const str* str_search(const str key, const str* const array, const size_t count)
 
 	return bsearch(&key, array, count, sizeof(str), str_order_asc);
 }
-

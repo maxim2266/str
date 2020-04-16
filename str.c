@@ -419,7 +419,7 @@ int str_order_desc_ci(const void* const s1, const void* const s2)
 // sorting
 void str_sort_range(const str_cmp_func cmp, str* const array, const size_t count)
 {
-	if(array && cmp && count > 1)
+	if(array && count > 1)
 		qsort(array, count, sizeof(array[0]), cmp);
 }
 
@@ -452,4 +452,25 @@ size_t str_partition_range(bool (*pred)(const str), str* const array, const size
 			str_swap(p++, s);
 
 	return p - array;
+}
+
+// unique partitioning
+size_t str_unique_range(str* const array, const size_t count)
+{
+	if(!array || count == 0)
+		return 0;
+
+	if(count == 1)
+		return 1;
+
+	str_sort_range(str_order_asc, array, count);
+
+	const str* const end = array + count;
+	str* p = array;
+
+	for(str* s = array + 1; s < end; ++s)
+		if(!str_eq(*p, *s) && (++p < s))
+			str_swap(p, s);
+
+	return p + 1 - array;
 }

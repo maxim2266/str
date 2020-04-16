@@ -282,10 +282,17 @@ of typically used comparison functions is also provided:
 Binary search for the given key. The input array must be sorted using `str_order_asc`.
 Returns a pointer to the string matching the key, or NULL.
 
-`size_t str_partition_range(bool (*pred)(const str), const str* const array, const size_t count)`<br>
+`size_t str_partition_range(bool (*pred)(const str), str* const array, const size_t count)`<br>
 Reorders the string objects in the given range in such a way that all elements for which
 the predicate `pred` returns "true" precede the elements for which predicate `pred`
 returns "false". Returns the number of preceding objects.
+
+`size_t str_unique_range(str* const array, const size_t count)`<br>
+Reorders the string objects in the given range in such a way that there are two partitions:
+one where each object is unique within the input range, and another partition with all the
+remaining objects. The unique partition is stored at the beginning of the array, and is
+sorted in ascending order, followed by the partition with remaining objects.
+Returns the number of unique objects.
 
 #### Memory Management
 

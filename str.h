@@ -216,6 +216,9 @@ const str* str_search_range(const str key, const str* const array, const size_t 
 // partitioning
 size_t str_partition_range(bool (*pred)(const str), str* const array, const size_t count);
 
+// unique partitioning
+size_t str_unique_range(str* const array, const size_t count);
+
 #ifdef __cplusplus
 }
 #endif

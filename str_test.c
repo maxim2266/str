@@ -477,9 +477,13 @@ void test_partition_range(void)
 {
 	str src[] = { str_lit("aaa"), str_lit("a"), str_lit("aaaa"), str_lit("z") };
 
+	assert(str_partition_range(part_pred, src, 1) == 0);
+
 	assert(str_partition_range(part_pred, src, sizeof(src)/sizeof(src[0])) == 2);
 	assert(str_eq(src[0], str_lit("a")));
 	assert(str_eq(src[1], str_lit("z")));
+	assert(str_partition_range(part_pred, src, 1) == 1);
+
 
 	src[0] = str_lit("?");
 	src[2] = str_lit("*");
@@ -492,6 +496,31 @@ void test_partition_range(void)
 
 	assert(str_partition_range(part_pred, NULL, 42) == 0);
 	assert(str_partition_range(part_pred, src, 0) == 0);
+
+	passed;
+}
+
+static
+void test_unique_range(void)
+{
+	str src[] = {
+		str_lit("zzz"),
+		str_lit("aaa"),
+		str_lit("zzz"),
+		str_lit("bbb"),
+		str_lit("aaa"),
+		str_lit("ccc"),
+		str_lit("ccc"),
+		str_lit("aaa"),
+		str_lit("ccc"),
+		str_lit("zzz")
+	};
+
+	assert(str_unique_range(src, sizeof(src)/sizeof(src[0])) == 4);
+	assert(str_eq(src[0], str_lit("aaa")));
+	assert(str_eq(src[1], str_lit("bbb")));
+	assert(str_eq(src[2], str_lit("ccc")));
+	assert(str_eq(src[3], str_lit("zzz")));
 
 	passed;
 }
@@ -522,6 +551,7 @@ int main(void)
 	test_str_join_to_fd();
 	test_str_join_to_stream();
 	test_partition_range();
+	test_unique_range();
 
 	return puts("OK.") < 0;
 }

@@ -86,6 +86,15 @@ void str_free(const str s)
 		str_mem_free((void*)s.ptr);
 }
 
+// swap
+void str_swap(str* const s1, str* const s2)
+{
+	const str tmp = *s1;
+
+	*s1 = *s2;
+	*s2 = tmp;
+}
+
 // string comparison ---------------------------------------------------------------------
 // compare two strings lexicographically
 int str_cmp(const str s1, const str s2)
@@ -424,4 +433,23 @@ const str* str_search_range(const str key, const str* const array, const size_t 
 		return str_eq(key, array[0]) ? array : NULL;
 
 	return bsearch(&key, array, count, sizeof(str), str_order_asc);
+}
+
+// partitioning
+size_t str_partition_range(bool (*pred)(const str), str* const array, const size_t count)
+{
+	if(!array)
+		return 0;
+
+	const str* const end = array + count;
+	str* p = array;
+
+	while(p < end && pred(*p))
+		++p;
+
+	for(str* s = p + 1; s < end; ++s)
+		if(pred(*s))
+			str_swap(p++, s);
+
+	return p - array;
 }

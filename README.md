@@ -223,6 +223,9 @@ returns the saved object.
 `void str_clear(str* const ps)`<br>
 Sets the target object to `str_null` after freeing any memory owned by the target.
 
+`void str_swap(str* const s1, str* const s2)`<br>
+Swaps two string objects.
+
 #### String Comparison
 
 `int str_cmp(const str s1, const str s2)`<br>
@@ -278,6 +281,11 @@ of typically used comparison functions is also provided:
 `const str* str_search_range(const str key, const str* const array, const size_t count)`<br>
 Binary search for the given key. The input array must be sorted using `str_order_asc`.
 Returns a pointer to the string matching the key, or NULL.
+
+`size_t str_partition_range(str* const array, const size_t count, bool (*pred)(const str))`<br>
+Reorders the string objects in the given range in such a way that all elements for which
+the predicate `pred` returns "true" precede the elements for which predicate `pred`
+returns "false". Returns the number of preceding objects.
 
 #### Memory Management
 

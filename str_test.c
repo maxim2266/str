@@ -469,6 +469,33 @@ void test_str_join_to_stream(void)
 	passed;
 }
 
+static
+bool part_pred(const str s) { return str_len(s) < 2; }
+
+static
+void test_partition_range(void)
+{
+	str src[] = { str_lit("aaa"), str_lit("a"), str_lit("aaaa"), str_lit("z") };
+
+	assert(str_partition_range(part_pred, src, sizeof(src)/sizeof(src[0])) == 2);
+	assert(str_eq(src[0], str_lit("a")));
+	assert(str_eq(src[1], str_lit("z")));
+
+	src[0] = str_lit("?");
+	src[2] = str_lit("*");
+
+	assert(str_partition_range(part_pred, src, sizeof(src)/sizeof(src[0])) == 3);
+	assert(str_eq(src[0], str_lit("?")));
+	assert(str_eq(src[1], str_lit("z")));
+	assert(str_eq(src[2], str_lit("*")));
+	assert(str_eq(src[3], str_lit("aaa")));
+
+	assert(str_partition_range(part_pred, NULL, 42) == 0);
+	assert(str_partition_range(part_pred, src, 0) == 0);
+
+	passed;
+}
+
 int main(void)
 {
 	// tests
@@ -494,6 +521,7 @@ int main(void)
 	test_cat_range_to_stream();
 	test_str_join_to_fd();
 	test_str_join_to_stream();
+	test_partition_range();
 
 	return puts("OK.") < 0;
 }

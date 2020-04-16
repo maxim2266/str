@@ -91,6 +91,9 @@ void str_assign(str* const ps, const str s) { str_free(*ps); *ps = s; }
 static inline
 str str_move(str* const ps) { const str t = *ps; *ps = str_null; return t; }
 
+// swap two string objects
+void str_swap(str* const s1, str* const s2);
+
 // string helpers --------------------------------------------------------------------------
 // reset the string to str_null
 static inline
@@ -209,6 +212,9 @@ void str_sort_range(const str_cmp_func cmp, str* const array, const size_t count
 
 // searching
 const str* str_search_range(const str key, const str* const array, const size_t count);
+
+// partitioning
+size_t str_partition_range(bool (*pred)(const str), str* const array, const size_t count);
 
 #ifdef __cplusplus
 }

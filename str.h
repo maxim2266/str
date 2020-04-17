@@ -193,7 +193,7 @@ str _str_ref_form_ptr(const char* const s);
 str str_ref_chars(const char* const s, const size_t n);
 
 // take ownership of the given range of chars
-str str_acquire_chars(const char* const s, size_t n);
+str str_acquire_chars(const char* const s, const size_t n);
 
 // take ownership of the given string
 str str_acquire(const char* const s);

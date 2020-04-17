@@ -207,7 +207,7 @@ Implemented as a macro.
 `str str_ref_chars(const char* const s, const size_t n)`<br>
 Constructs a non-owning object referencing the given range of bytes.
 
-`str str_acquire_chars(const char* const s, size_t n)`<br>
+`str str_acquire_chars(const char* const s, const size_t n)`<br>
 Constructs an owning object for the specified range of bytes. The range should be safe
 to pass to `free(3)` function.
 

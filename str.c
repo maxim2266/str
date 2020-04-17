@@ -34,7 +34,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "str.h"
 
+#include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <unistd.h>
 #include <sys/uio.h>
 
@@ -55,10 +57,6 @@ void* str_mem_alloc(size_t);	// this should also handle out of memory condition
 void str_mem_free(void*);
 
 #else
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
 
 static __attribute__((malloc))
 void* str_mem_alloc(const size_t n)
@@ -155,7 +153,7 @@ str _str_ref_form_ptr(const char* const s)
 }
 
 // take ownership of the given range of chars
-str str_acquire_chars(const char* const s, size_t n)
+str str_acquire_chars(const char* const s, const size_t n)
 {
 	// take ownership even if the string is empty, because its memory is still allocated
 	return s ? ((str){ s, _owner_info(n) }) : str_null;

@@ -1,0 +1,30 @@
+#!/bin/sh
+
+die() {
+	echo >&2 "$@"
+	exit 1
+}
+
+[ $# -eq 2 ] || die "Usage: $(basename "$0") FILE VAR-NAME"
+[ -f "$1" ]  || die "$0: file \"$1\" does not exist, or is not a file."
+
+set -e
+
+cat << EOF
+// AUTOMATICALLY GENERATED FILE - DO NOT EDIT
+
+// source file: $1
+
+#include "str.h"
+
+static
+const char _bytes[] = {
+EOF
+
+od -v -w12 -A n -t x1 "$1" | sed -E 's/\<([[:xdigit:]]{2})\>/0x\1,/g'
+
+cat << EOF
+ 0x00 };
+
+const str $2 = (const str){ _bytes, _ref_info(sizeof(_bytes) - 1) };
+EOF

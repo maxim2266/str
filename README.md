@@ -315,6 +315,12 @@ does _not_ check the returned pointer for NULL.
 `void str_mem_free(void*)`<br>
 Equivalent of `free(3)` function.
 
-### Status
+## Tools
+
+* `file-to-str`: The script takes a file (text or binary) and a C variable name, and
+writes to `stdout` C source code with the variable defined and initialised with the
+content of the file.
+
+## Project Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3
 with `gcc` version 7.5.0 and `clang` version 6.0.0.

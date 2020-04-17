@@ -7,6 +7,13 @@
 Bored with developing the same functionality over and over again, unsatisfied
 with existing libraries, so decided to make the right one, once and forever. 🙂
 
+## Features
+
+* Handles both C and binary strings;
+* Light-weight references to strings: cheap to create, copy, or pass by value;
+* Support for copy and move semantics, although not enforceable by the C language;
+* String composition targeting memory, file descriptors, or file streams;
+
 ## Installation
 Just clone the project and copy (or symlink) the files `str.h` and `str.c` into your project,
 but please respect the [license](LICENSE).
@@ -40,8 +47,6 @@ int err = str_join(stream, str_lit(", "),
                    str_lit("and everywhere..."));
 
 if(err != 0) { /* handle the error */ }
-
-fclose(stream);
 ```
 
 ## User Guide

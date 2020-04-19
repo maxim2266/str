@@ -50,11 +50,11 @@ void* mempcpy(void* dest, const void* src, const size_t n)
 #endif
 
 // memory allocation
-#ifdef STR_EXT_ALLOC
+#ifdef STR_MALLOC
 
-// these functions are defined elsewhere
-void* str_mem_alloc(size_t);	// this should also handle out of memory condition
-void str_mem_free(void*);
+void* STR_MALLOC(size_t);	// defined elsewhere
+
+#define str_mem_alloc STR_MALLOC
 
 #else
 
@@ -73,9 +73,17 @@ void* str_mem_alloc(const size_t n)
 	abort();
 }
 
-#define str_mem_free free
+#endif	// STR_MALLOC
 
-#endif	// #ifdef STR_EXT_ALLOC
+#ifdef STR_FREE
+
+void STR_FREE(void*);	// defined elsewhere
+
+#define str_mem_free STR_FREE
+
+#else
+#define str_mem_free free
+#endif	// STR_FREE
 
 // string deallocation
 void str_free(const str s)

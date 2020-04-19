@@ -305,15 +305,15 @@ Returns the number of unique objects.
 Release the memory referenced by the owning object; no-op for references.
 
 By default the library uses `malloc(3)` for memory allocations, and calls `abort(3)`
-if the allocation fails. This behaviour can be changed by compiling the library with
-the preprocessor symbol `STR_EXT_ALLOC` defined, and providing the following functions:
+if the allocation fails. This behaviour can be changed by compiling the library with any
+one or both of the following:
 
-`void* str_mem_alloc(size_t)`<br>
-Allocates memory like `malloc(3)` does, also handling out-of-memory situations. The library
-does _not_ check the returned pointer for NULL.
+* Define `STR_MALLOC` symbol to be the name of a function that does memory allocation
+_and_ handles out-of-memory situations. The function signature should be:<br>
+`void* your_allocation_function_name(size_t)`
 
-`void str_mem_free(void*)`<br>
-Equivalent of `free(3)` function.
+* Define `STR_FREE` symbol to be the name of a function that frees the memory. The function signature should be:<br>
+`void your_deallocation_function_name(void*)`
 
 ## Tools
 

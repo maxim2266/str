@@ -13,6 +13,7 @@ SRC := str.c str.h str_test.c
 
 # compiler
 CC := gcc
+#CC := gcc-8
 #CC := clang
 
 # test

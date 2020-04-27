@@ -12,7 +12,7 @@ with existing libraries, so decided to make the right one, once and forever. ðŸ™
 * Handles both C and binary strings;
 * Light-weight references to strings: cheap to create, copy, or pass by value;
 * Support for copy and move semantics, although not enforceable by the C language;
-* String composition targeting memory, file descriptors, or file streams;
+* String composition functions writing to memory, file descriptors, or file streams;
 
 ## Installation
 Just clone the project and copy (or symlink) the files `str.h` and `str.c` into your project,
@@ -52,13 +52,13 @@ if(err != 0) { /* handle the error */ }
 ## User Guide
 
 _**Disclaimer:** This is the good old C language, not Rust, so nothing can be enforced
-on the language level, and certain programming discipline is required to make sure
-there is no corrupt or leaked memory resulting from using this library._
+on the language level, and certain discipline is required to make sure there is no corrupt
+or leaked memory resulting from using this library._
 
 A string is represented by the type `str` that maintains a pointer to some memory containing
 the actual string. Objects of type `str` are small enough (a struct of a `const char*` and a `size_t`)
-to be cheap to create, copy (pass by value), and move. The `str` structure should be
-treated as opaque (i.e., do not attempt to directly access or modify the fields in this structure).
+to be cheap to create, copy (pass by value), and move. The `str` structure should be treated
+as opaque (i.e., do not attempt to directly access or modify the fields in this structure).
 The strings are assumed to be immutable, like those in Java or Go, but only by means of `const char*`
 pointers, so it is actually possible to write to such a string, although the required type
 cast to `char*` offers at least some (mostly psychological) protection from modifying a string
@@ -296,7 +296,7 @@ returns "false". Returns the number of preceding objects.
 Reorders the string objects in the given range in such a way that there are two partitions:
 one where each object is unique within the input range, and another partition with all the
 remaining objects. The unique partition is stored at the beginning of the array, and is
-sorted in ascending order, followed by the partition with remaining objects.
+sorted in ascending order, followed by the partition with all remaining objects.
 Returns the number of unique objects.
 
 #### Memory Management
@@ -312,7 +312,8 @@ one or both of the following:
 _and_ handles out-of-memory situations. The function signature should be:<br>
 `void* your_allocation_function_name(size_t)`
 
-* Define `STR_FREE` symbol to be the name of a function that frees the memory. The function signature should be:<br>
+* Define `STR_FREE` symbol to be the name of a function that frees the memory. The function
+signature should be:<br>
 `void your_deallocation_function_name(void*)`
 
 ## Tools
@@ -323,4 +324,4 @@ content of the file.
 
 ## Project Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3
-with `gcc` version 7.5.0 and `clang` version 6.0.0.
+with `gcc` versions 7.5.0 and 8.4.0, and `clang` version 6.0.0.

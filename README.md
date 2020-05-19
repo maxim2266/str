@@ -302,19 +302,13 @@ Returns the number of unique objects.
 #### Memory Management
 
 `void str_free(const str s)`<br>
-Release the memory referenced by the owning object; no-op for references.
+Release any memory owned by the given object; no-op for references.
 
-By default the library uses `malloc(3)` for memory allocations, and calls `abort(3)`
-if the allocation fails. This behaviour can be changed by compiling the library with any
-one or both of the following:
-
-* Define `STR_MALLOC` symbol to be the name of a function that does memory allocation
-_and_ handles out-of-memory situations. The function signature should be:<br>
-`void* your_allocation_function_name(size_t)`
-
-* Define `STR_FREE` symbol to be the name of a function that frees the memory. The function
-signature should be:<br>
-`void your_deallocation_function_name(void*)`
+By default the library uses `realloc(3)` for handling memory, and calls `abort(3)`
+if an allocation fails. This behaviour can be changed by compiling the library with
+`STR_REALLOC` symbol defined to be the name of a function that implements the functionality
+of `realloc(3)` _and_ handles out-of-memory situations. The function signature should be:<br>
+`void* your_reallocation_function(void*, size_t)`
 
 ## Tools
 
@@ -324,4 +318,5 @@ content of the file.
 
 ## Project Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3
-with `gcc` versions 7.5.0 and 8.4.0, and `clang` version 6.0.0.
+with `gcc` versions 7.5.0, and `clang` version 9.0.0.
+

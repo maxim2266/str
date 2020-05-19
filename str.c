@@ -50,20 +50,20 @@ void* mempcpy(void* dest, const void* src, const size_t n)
 #endif
 
 // memory allocation
-#ifdef STR_MALLOC
+#ifdef STR_REALLOC
 
-void* STR_MALLOC(size_t);	// defined elsewhere
+void* STR_REALLOC(void* ptr, size_t size);	// defined elsewhere
 
-#define str_mem_alloc STR_MALLOC
+#define str_mem_realloc	STR_REALLOC
 
 #else
 
-static __attribute__((malloc))
-void* str_mem_alloc(const size_t n)
+static
+void* str_mem_realloc(void* s, size_t n)
 {
-	void* const p = malloc(n);
+	void* const p = realloc(s, n);
 
-	if(p)
+	if(p || n == 0)
 		return p;
 
 	if(errno == 0)	// a fix for some sub-standard memory allocators
@@ -73,22 +73,21 @@ void* str_mem_alloc(const size_t n)
 	abort();
 }
 
-#endif	// STR_MALLOC
+#endif	// #ifdef STR_REALLOC
 
-#ifdef STR_FREE
+#define str_mem_alloc(n)	str_mem_realloc(NULL, (n))
 
-void STR_FREE(void*);	// defined elsewhere
-
-#define str_mem_free STR_FREE
-
-#else
-#define str_mem_free free
-#endif	// STR_FREE
+static inline
+void str_mem_free(void* p)
+{
+	if(p)
+		str_mem_realloc(p, 0);
+}
 
 // string deallocation
 void str_free(const str s)
 {
-	if(str_is_owner(s) && s.ptr)
+	if(str_is_owner(s))
 		str_mem_free((void*)s.ptr);
 }
 
@@ -480,3 +479,4 @@ size_t str_unique_range(str* const array, const size_t count)
 
 	return p + 1 - array;
 }
+

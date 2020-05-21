@@ -13,15 +13,36 @@ SRC := str.c str.h str_test.c
 
 # compiler
 CC := gcc
-#CC := gcc-8
-#CC := clang
+#CC := clang-9
+
+# all
+.PHONY: all
+all: tools test
+
+.PHONY: clean
+clean: clean-test clean-tools
 
 # test
 test: $(SRC)
 	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
 	./$@
 
-# clean-up
-.PHONY: clean
-clean:
+.PHONY: clean-test
+clean-test:
 	rm -f test
+
+# tools
+GEN_CHAR_CLASS := tools/gen-char-class
+
+.PHONY: tools
+tools: $(GEN_CHAR_CLASS)
+
+TOOL_CFLAGS := -s -O2 -std=c11 -Wall -Wextra -march=native -mtune=native
+
+# gen-char-class
+$(GEN_CHAR_CLASS): tools/gen_char_class.c
+	$(CC) $(TOOL_CFLAGS) -o $@ $^
+
+.PHONY: clean-tools
+clean-tools:
+	rm -f $(GEN_CHAR_CLASS)

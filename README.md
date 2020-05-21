@@ -312,9 +312,15 @@ of `realloc(3)` _and_ handles out-of-memory situations. The function signature s
 
 ## Tools
 
+All the tools are located in `tools/` directory. Currently, there are the following tools:
+
 * `file-to-str`: The script takes a file (text or binary) and a C variable name, and
-writes to `stdout` C source code with the variable defined and initialised with the
-content of the file.
+writes to `stdout` C source code where the variable (of type `str`) is defined
+and initialised with the content of the file. The file may be either text or binary.
+
+* `gen-char-class`: Generates a character classification function that does the same as its
+isw*() counterpart under en_US.UTF8 locale on the current platform. Run `tools/gen-char-class --help`
+for further details, or `tools/gen-char-class --space` to see its output.
 
 ## Project Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3

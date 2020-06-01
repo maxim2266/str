@@ -93,7 +93,7 @@ void read_opts(int argc, char* const argv[])
 	ARG(upper)
 	ARG(xdigit)
 
-	if(strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h"))
+	if(strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
 		usage_exit();
 
 	error(1, 0, "unknown option: \"%s\"", argv[1]);

@@ -1,8 +1,11 @@
-#define _XOPEN_SOURCE 500
+#define _POSIX_C_SOURCE 200809L
 
 #include "str.h"
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <malloc.h>
 
 // make sure assert is always enabled
 #ifdef NDEBUG
@@ -393,6 +396,51 @@ void test_cat_range_to_fd(void)
 }
 
 static
+void test_cat_range_to_fd_large(void)
+{
+	// prepare data
+	const size_t n = 100000;
+	str* const src = malloc(n * sizeof(str));
+
+	assert(src != NULL);
+
+	char buff[100];
+
+	for(unsigned i = 0; i < n; i++)
+		str_cpy(&src[i], str_ref_chars(buff, sprintf(buff, "%u\n", i)));
+
+	// write to file
+	FILE* const tmp = tmpfile();
+
+	assert(tmp != NULL);
+	assert(str_cat_range(fileno(tmp), src, n) == 0);
+
+	// clear input data
+	for(unsigned i = 0; i < n; ++i)
+		str_free(src[i]);
+
+	free(src);
+
+	// validate
+	rewind(tmp);
+
+	char* line = NULL;
+	size_t cap = 0;
+	ssize_t len;
+	int i = 0;
+
+	while((len = getline(&line, &cap, tmp)) >= 0)
+		assert(atoi(line) == i++);
+
+	assert(i == (int)n);
+
+	// all done
+	fclose(tmp);
+	free(line);
+	passed;
+}
+
+static
 void test_cat_range_to_stream(void)
 {
 	const str src[] = {
@@ -427,7 +475,7 @@ void test_cat_range_to_stream(void)
 }
 
 static
-void test_str_join_to_fd(void)
+void test_join_to_fd(void)
 {
 	FILE* const tmp = tmpfile();
 
@@ -448,7 +496,7 @@ void test_str_join_to_fd(void)
 }
 
 static
-void test_str_join_to_stream(void)
+void test_join_to_stream(void)
 {
 	FILE* const tmp = tmpfile();
 
@@ -547,9 +595,10 @@ int main(void)
 	test_cpy_to_fd();
 	test_cpy_to_stream();
 	test_cat_range_to_fd();
+	test_cat_range_to_fd_large();
 	test_cat_range_to_stream();
-	test_str_join_to_fd();
-	test_str_join_to_stream();
+	test_join_to_fd();
+	test_join_to_stream();
 	test_partition_range();
 	test_unique_range();
 

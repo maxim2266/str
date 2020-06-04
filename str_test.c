@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
 
 // make sure assert is always enabled
 #ifdef NDEBUG
@@ -396,11 +395,11 @@ void test_cat_range_to_fd(void)
 }
 
 static
-void test_cat_range_to_fd_large(void)
+void test_cat_large_range_to_fd(void)
 {
 	// prepare data
 	const size_t n = 100000;
-	str* const src = malloc(n * sizeof(str));
+	str* const src = calloc(n, sizeof(str));
 
 	assert(src != NULL);
 
@@ -492,6 +491,51 @@ void test_join_to_fd(void)
 	assert(memcmp(buff, res, len) == 0);
 
 	fclose(tmp);
+	passed;
+}
+
+static
+void test_join_large_range_to_fd(void)
+{
+	// prepare data
+	const size_t n = 100000;
+	str* const src = calloc(n, sizeof(str));
+
+	assert(src != NULL);
+
+	char buff[100];
+
+	for(unsigned i = 0; i < n; i++)
+		str_cpy(&src[i], str_ref_chars(buff, sprintf(buff, "%u", i)));
+
+	// write to file
+	FILE* const tmp = tmpfile();
+
+	assert(tmp != NULL);
+	assert(str_join_range(fileno(tmp), str_lit("\n"), src, n) == 0);
+
+	// clear input data
+	for(unsigned i = 0; i < n; ++i)
+		str_free(src[i]);
+
+	free(src);
+
+	// validate
+	rewind(tmp);
+
+	char* line = NULL;
+	size_t cap = 0;
+	ssize_t len;
+	int i = 0;
+
+	while((len = getline(&line, &cap, tmp)) >= 0)
+		assert(atoi(line) == i++);
+
+	assert(i == (int)n);
+
+	// all done
+	fclose(tmp);
+	free(line);
 	passed;
 }
 
@@ -595,9 +639,10 @@ int main(void)
 	test_cpy_to_fd();
 	test_cpy_to_stream();
 	test_cat_range_to_fd();
-	test_cat_range_to_fd_large();
+	test_cat_large_range_to_fd();
 	test_cat_range_to_stream();
 	test_join_to_fd();
+	test_join_large_range_to_fd();
 	test_join_to_stream();
 	test_partition_range();
 	test_unique_range();

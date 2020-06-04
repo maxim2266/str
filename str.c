@@ -31,9 +31,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #define _DEFAULT_SOURCE	// for strncasecmp()
+#define _XOPEN_SOURCE
 
 #include "str.h"
 
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -270,20 +272,18 @@ struct iovec* vec_append_nonempty(struct iovec* pv, const str s)
 	return str_is_empty(s) ? pv : vec_append(pv, s);
 }
 
-#define IOVEC_SIZE 1024
-
 int _str_cat_range_to_fd(const int fd, const str* src, size_t count)
 {
 	if(!src)
 		return 0;
 
-	struct iovec v[IOVEC_SIZE];
+	struct iovec v[IOV_MAX];
 
 	while(count > 0)
 	{
 		struct iovec* p = vec_append_nonempty(v, *src++);
 
-		while(--count > 0 && p < v + IOVEC_SIZE)
+		while(--count > 0 && p < v + IOV_MAX)
 			p = vec_append_nonempty(p, *src++);
 
 		const size_t n = p - v;
@@ -361,7 +361,7 @@ int _str_join_range_to_fd(const int fd, const str sep, const str* src, size_t co
 	if(count == 1)
 		return str_cpy(fd, *src);
 
-	struct iovec v[IOVEC_SIZE];
+	struct iovec v[IOV_MAX];
 
 	struct iovec* p = vec_append_nonempty(v, *src++);
 
@@ -369,7 +369,7 @@ int _str_join_range_to_fd(const int fd, const str sep, const str* src, size_t co
 	{
 		p = vec_append_nonempty(vec_append(p, sep), *src++);
 
-		while(--count > 0 && p < v + IOVEC_SIZE - 1)
+		while(--count > 0 && p < v + IOV_MAX - 1)
 			p = vec_append_nonempty(vec_append(p, sep), *src++);
 
 		const size_t n = p - v;

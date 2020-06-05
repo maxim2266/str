@@ -319,10 +319,10 @@ writes to `stdout` C source code where the variable (of type `str`) is defined
 and initialised with the content of the file. The file may be either text or binary.
 
 * `gen-char-class`: Generates a character classification function that does the same as its
-isw*() counterpart under en_US.UTF8 locale on the current platform. Run `tools/gen-char-class --help`
-for further details, or `tools/gen-char-class --space` to see its output.
+`isw*()` counterpart under `en_US.UTF8` locale on the current platform. Run `tools/gen-char-class --help`
+for further details, or `tools/gen-char-class --space` to see an example of its output.
 
 ## Project Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3
-with `gcc` versions 7.5.0, and `clang` version 9.0.0.
+with `gcc` version 7.5.0, and `clang` version 9.0.0.
 

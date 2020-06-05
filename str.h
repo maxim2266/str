@@ -185,8 +185,9 @@ str _str_ref_form_ptr(const char* const s);
 // string reference from anything
 #define str_ref(s)	\
 	_Generic((s),	\
-		str:	_str_ref,	\
-		char*:	_str_ref_form_ptr	\
+		str:			_str_ref,	\
+		char*:			_str_ref_form_ptr,	\
+		const char*:	_str_ref_form_ptr	\
 	)(s)
 
 // create a reference to the given range of chars

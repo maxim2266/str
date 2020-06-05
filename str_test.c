@@ -96,6 +96,13 @@ void test_str_ref(void)
 	assert(str_is_ref(s));
 	assert(str_eq(s, str_lit("ZZZ")));
 
+	const char* const p = "ZZZ";
+
+	s = str_ref(p);
+
+	assert(str_is_ref(s));
+	assert(str_eq(s, str_lit("ZZZ")));
+
 	passed;
 }
 
@@ -575,7 +582,6 @@ void test_partition_range(void)
 	assert(str_eq(src[0], str_lit("a")));
 	assert(str_eq(src[1], str_lit("z")));
 	assert(str_partition_range(part_pred, src, 1) == 1);
-
 
 	src[0] = str_lit("?");
 	src[2] = str_lit("*");

@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <errno.h>
 
 // make sure assert is always enabled
 #ifdef NDEBUG
@@ -623,6 +625,28 @@ void test_unique_range(void)
 	passed;
 }
 
+static
+void test_from_file(void)
+{
+	const char* const tmp = tmpnam(NULL);
+	FILE* const stream = fopen(tmp, "w");
+
+	assert(stream);
+	assert(str_join(stream, str_lit(" "), str_lit("aaa"), str_lit("bbb"), str_lit("ccc")) == 0);
+	assert(fclose(stream) == 0);
+
+	str res = str_null;
+
+	assert(str_from_file(&res, str_ref(tmp)) == 0);
+	unlink(tmp);
+	assert(str_eq(res, str_lit("aaa bbb ccc")));
+
+	assert(str_from_file(&res, str_lit(".")) == EISDIR);
+
+	str_free(res);
+	passed;
+}
+
 int main(void)
 {
 	// tests
@@ -652,6 +676,7 @@ int main(void)
 	test_join_to_stream();
 	test_partition_range();
 	test_unique_range();
+	test_from_file();
 
 	return puts("OK.") < 0;
 }

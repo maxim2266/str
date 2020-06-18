@@ -515,7 +515,7 @@ int str_from_file(str* const dest, const str file_name)
 	}
 
 	// open the file
-	const int fd = open(str_ptr(file_name), O_CLOEXEC, O_RDONLY);
+	const int fd = open(str_ptr(file_name), O_CLOEXEC | O_RDONLY);
 
 	if(fd == -1)
 		return errno;

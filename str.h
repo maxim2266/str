@@ -199,6 +199,9 @@ str str_acquire_chars(const char* const s, const size_t n);
 // take ownership of the given string
 str str_acquire(const char* const s);
 
+// string from file
+int str_from_file(str* const dest, const str file_name);
+
 // sorting and searching --------------------------------------------------------------------
 // comparison functions
 typedef int (*str_cmp_func)(const void*, const void*);
@@ -219,9 +222,6 @@ size_t str_partition_range(bool (*pred)(const str), str* const array, const size
 
 // unique partitioning
 size_t str_unique_range(str* const array, const size_t count);
-
-// string from file
-int str_from_file(str* const dest, const str file_name);
 
 #ifdef __cplusplus
 }

@@ -194,6 +194,66 @@ void _str_dup(str* const dest, const str s)
 	}
 }
 
+#define MAX_FILE_SIZE	(1024 * 1024 * 1024)
+
+int str_from_file(str* const dest, const str file_name)
+{
+	// stat the file
+	struct stat info;
+
+	if(stat(str_ptr(file_name), &info))
+		return errno;
+
+	// only regular files are allowed
+	switch(info.st_mode & S_IFMT)
+	{
+		case S_IFREG:
+			break;
+		case S_IFDIR:
+			return EISDIR;
+		default:
+			return EOPNOTSUPP;
+	}
+
+	// check the file size
+	if(info.st_size > MAX_FILE_SIZE)
+		return EFBIG;
+
+	if(info.st_size == 0)
+	{
+		str_clear(dest);
+		return 0;
+	}
+
+	// open the file
+	const int fd = open(str_ptr(file_name), O_CLOEXEC | O_RDONLY);
+
+	if(fd == -1)
+		return errno;
+
+	// read the file
+	char* const buff = str_mem_alloc(info.st_size + 1);
+	const ssize_t n = read(fd, buff, info.st_size);
+	const int err = errno;
+
+	close(fd);
+
+	// error check
+	if(n == info.st_size)
+	{	// OK
+		buff[n] = 0;
+		str_assign(dest, str_acquire_chars(buff, n));
+
+		return 0;
+	}
+
+	str_mem_free(buff);
+
+	return (err != 0) ? err : EAGAIN;
+}
+
+#undef MAX_FILE_SIZE
+
 // string composition -----------------------------------------------------------------------
 // append string
 static inline
@@ -482,69 +542,3 @@ size_t str_unique_range(str* const array, const size_t count)
 
 	return p + 1 - array;
 }
-
-#define MAX_FILE_SIZE	(1024 * 1024 * 1024)
-
-int str_from_file(str* const dest, const str file_name)
-{
-	// stat the file
-	struct stat info;
-
-	if(stat(str_ptr(file_name), &info))
-		return errno;
-
-	// only regular files are allowed
-	switch(info.st_mode & S_IFMT)
-	{
-		case S_IFREG:
-			break;
-		case S_IFDIR:
-			return EISDIR;
-		default:
-			return EOPNOTSUPP;
-	}
-
-	// check the file size
-	if(info.st_size > MAX_FILE_SIZE)
-		return EFBIG;
-
-	if(info.st_size == 0)
-	{
-		str_clear(dest);
-		return 0;
-	}
-
-	// open the file
-	const int fd = open(str_ptr(file_name), O_CLOEXEC | O_RDONLY);
-
-	if(fd == -1)
-		return errno;
-
-	// read the file
-	char* const buff = str_mem_alloc(info.st_size + 1);
-	const ssize_t n = read(fd, buff, info.st_size);
-	const int err = errno;
-
-	close(fd);
-
-	// error check
-	if(err != 0)
-	{
-		str_mem_free(buff);
-		return err;
-	}
-
-	if(n != info.st_size)	// e.g., the file was truncated just before the read
-	{
-		str_mem_free(buff);
-		return EAGAIN;	// "try again later"
-	}
-
-	// OK
-	buff[n] = 0;
-	str_assign(dest, str_acquire_chars(buff, n));
-
-	return 0;
-}
-
-#undef MAX_FILE_SIZE

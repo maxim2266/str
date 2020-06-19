@@ -641,7 +641,10 @@ void test_from_file(void)
 	unlink(tmp);
 	assert(str_eq(res, str_lit("aaa bbb ccc")));
 
+	// errors
 	assert(str_from_file(&res, str_lit(".")) == EISDIR);
+	assert(str_from_file(&res, str_lit("/dev/null")) == EOPNOTSUPP);
+	assert(str_from_file(&res, str_lit("does-not-exist")) == ENOENT);
 
 	str_free(res);
 	passed;

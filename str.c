@@ -194,7 +194,9 @@ void _str_dup(str* const dest, const str s)
 	}
 }
 
-#define MAX_FILE_SIZE	(1024 * 1024 * 1024)
+#ifndef STR_MAX_FILE_SIZE
+#define STR_MAX_FILE_SIZE	(1024 * 1024 * 1024)
+#endif
 
 int str_from_file(str* const dest, const str file_name)
 {
@@ -216,7 +218,7 @@ int str_from_file(str* const dest, const str file_name)
 	}
 
 	// check the file size
-	if(info.st_size > MAX_FILE_SIZE)
+	if(info.st_size > STR_MAX_FILE_SIZE)
 		return EFBIG;
 
 	if(info.st_size == 0)
@@ -251,8 +253,6 @@ int str_from_file(str* const dest, const str file_name)
 
 	return (err != 0) ? err : EAGAIN;
 }
-
-#undef MAX_FILE_SIZE
 
 // string composition -----------------------------------------------------------------------
 // append string

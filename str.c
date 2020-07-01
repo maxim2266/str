@@ -198,12 +198,12 @@ void _str_dup(str* const dest, const str s)
 #define STR_MAX_FILE_SIZE	(1024 * 1024 * 1024)
 #endif
 
-int str_from_file(str* const dest, const str file_name)
+int str_from_file(str* const dest, const char* const file_name)
 {
 	// stat the file
 	struct stat info;
 
-	if(stat(str_ptr(file_name), &info))
+	if(stat(file_name, &info))
 		return errno;
 
 	// only regular files are allowed
@@ -228,7 +228,7 @@ int str_from_file(str* const dest, const str file_name)
 	}
 
 	// open the file
-	const int fd = open(str_ptr(file_name), O_CLOEXEC | O_RDONLY);
+	const int fd = open(file_name, O_CLOEXEC | O_RDONLY);
 
 	if(fd == -1)
 		return errno;

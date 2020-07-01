@@ -200,7 +200,7 @@ str str_acquire_chars(const char* const s, const size_t n);
 str str_acquire(const char* const s);
 
 // string from file
-int str_from_file(str* const dest, const str file_name);
+int str_from_file(str* const dest, const char* const file_name);
 
 // sorting and searching --------------------------------------------------------------------
 // comparison functions

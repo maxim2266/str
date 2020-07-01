@@ -637,14 +637,15 @@ void test_from_file(void)
 
 	str res = str_null;
 
-	assert(str_from_file(&res, str_ref(tmp)) == 0);
+	assert(str_from_file(&res, tmp) == 0);
 	unlink(tmp);
 	assert(str_eq(res, str_lit("aaa bbb ccc")));
+	assert(str_is_owner(res));
 
-	// errors
-	assert(str_from_file(&res, str_lit(".")) == EISDIR);
-	assert(str_from_file(&res, str_lit("/dev/null")) == EOPNOTSUPP);
-	assert(str_from_file(&res, str_lit("does-not-exist")) == ENOENT);
+	// test errors
+	assert(str_from_file(&res, ".") == EISDIR);
+	assert(str_from_file(&res, "/dev/null") == EOPNOTSUPP);
+	assert(str_from_file(&res, "does-not-exist") == ENOENT);
 
 	str_free(res);
 	passed;

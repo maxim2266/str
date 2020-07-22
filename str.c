@@ -235,23 +235,26 @@ int str_from_file(str* const dest, const char* const file_name)
 
 	// read the file
 	char* const buff = str_mem_alloc(info.st_size + 1);
+
+	errno = 0;
+
 	const ssize_t n = read(fd, buff, info.st_size);
 	const int err = errno;
 
 	close(fd);
 
 	// error check
-	if(n == info.st_size)
-	{	// OK
-		buff[n] = 0;
-		str_assign(dest, str_acquire_chars(buff, n));
-
-		return 0;
+	if(n != info.st_size)
+	{
+		str_mem_free(buff);
+		return (err != 0) ? err : EAGAIN;
 	}
 
-	str_mem_free(buff);
+	// OK
+	buff[n] = 0;
+	str_assign(dest, str_acquire_chars(buff, n));
 
-	return (err != 0) ? err : EAGAIN;
+	return 0;
 }
 
 // string composition -----------------------------------------------------------------------

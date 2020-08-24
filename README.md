@@ -232,7 +232,7 @@ Sets the target object to `str_null` after freeing any memory owned by the targe
 Swaps two string objects.
 
 `int str_from_file(str* const dest, const char* const file_name)`<br>
-Reads the entire file (of up to 1Gb by default, configuarable via `STR_MAX_FILE_SIZE`) into
+Reads the entire file (of up to 256MB by default, configuarable via `STR_MAX_FILE_SIZE`) into
 the destination string. Returns 0 on success, or the value of `errno` on error.
 
 #### String Comparison

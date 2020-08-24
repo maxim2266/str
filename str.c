@@ -195,15 +195,16 @@ void _str_dup(str* const dest, const str s)
 }
 
 #ifndef STR_MAX_FILE_SIZE
-#define STR_MAX_FILE_SIZE	(1024 * 1024 * 1024)
+#define STR_MAX_FILE_SIZE	(256 * 1024 * 1024)
 #endif
 
-int str_from_file(str* const dest, const char* const file_name)
+static
+int check_file(const int fd, off_t* const size)
 {
-	// stat the file
+	// stat the file to get its size
 	struct stat info;
 
-	if(stat(file_name, &info))
+	if(fstat(fd, &info) == -1)
 		return errno;
 
 	// only regular files are allowed
@@ -218,43 +219,46 @@ int str_from_file(str* const dest, const char* const file_name)
 	}
 
 	// check the file size
-	if(info.st_size > STR_MAX_FILE_SIZE)
-		return EFBIG;
+	*size = info.st_size;
 
-	if(info.st_size == 0)
-	{
-		str_clear(dest);
-		return 0;
-	}
+	return (info.st_size > STR_MAX_FILE_SIZE) ? EFBIG : 0;
+}
 
-	// open the file
+int str_from_file(str* const dest, const char* const file_name)
+{
 	const int fd = open(file_name, O_CLOEXEC | O_RDONLY);
 
 	if(fd == -1)
 		return errno;
 
-	// read the file
-	char* const buff = str_mem_alloc(info.st_size + 1);
+	off_t size;
+	int err = check_file(fd, &size);
 
-	errno = 0;
-
-	const ssize_t n = read(fd, buff, info.st_size);
-	const int err = errno;
-
-	close(fd);
-
-	// error check
-	if(n != info.st_size)
+	if(err == 0)
 	{
-		str_mem_free(buff);
-		return (err != 0) ? err : EAGAIN;
+		if(size == 0)
+			str_clear(dest);
+		else
+		{
+			char* const buff = str_mem_alloc(size + 1);
+			const ssize_t n = read(fd, buff, size);
+
+			err = (n == -1) ? errno
+				: (n != size) ? EAGAIN
+				: 0;
+
+			if(err == 0)
+			{
+				buff[n] = 0;
+				str_assign(dest, str_acquire_chars(buff, n));
+			}
+			else
+				str_mem_free(buff);
+		}
 	}
 
-	// OK
-	buff[n] = 0;
-	str_assign(dest, str_acquire_chars(buff, n));
-
-	return 0;
+	close(fd);
+	return err;
 }
 
 // string composition -----------------------------------------------------------------------

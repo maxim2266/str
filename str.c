@@ -199,29 +199,26 @@ void _str_dup(str* const dest, const str s)
 #endif
 
 static
-int check_file(const int fd, off_t* const size)
+int get_file_size(const int fd, off_t* const size)
 {
-	// stat the file to get its size
+	// stat the file
 	struct stat info;
 
 	if(fstat(fd, &info) == -1)
 		return errno;
 
+	*size = info.st_size;
+
 	// only regular files are allowed
 	switch(info.st_mode & S_IFMT)
 	{
 		case S_IFREG:
-			break;
+			return (info.st_size > STR_MAX_FILE_SIZE) ? EFBIG : 0;
 		case S_IFDIR:
 			return EISDIR;
 		default:
 			return EOPNOTSUPP;
 	}
-
-	// check the file size
-	*size = info.st_size;
-
-	return (info.st_size > STR_MAX_FILE_SIZE) ? EFBIG : 0;
 }
 
 int str_from_file(str* const dest, const char* const file_name)
@@ -232,7 +229,7 @@ int str_from_file(str* const dest, const char* const file_name)
 		return errno;
 
 	off_t size;
-	int err = check_file(fd, &size);
+	int err = get_file_size(fd, &size);
 
 	if(err == 0)
 	{

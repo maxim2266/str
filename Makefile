@@ -13,7 +13,7 @@ SRC := str.c str.h str_test.c
 
 # compiler
 CC := gcc
-#CC := clang-9
+#CC := clang-10
 
 # all
 .PHONY: all
@@ -24,6 +24,7 @@ clean: clean-test clean-tools
 
 # test
 test: $(SRC)
+	@$(CC) --version | head -n 1
 	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
 	./$@
 

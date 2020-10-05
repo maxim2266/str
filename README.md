@@ -320,7 +320,7 @@ All the tools are located in `tools/` directory. Currently, there are the follow
 
 * `file-to-str`: The script takes a file (text or binary) and a C variable name, and
 writes to `stdout` C source code where the variable (of type `str`) is defined
-and initialised with the content of the file. The file may be either text or binary.
+and initialised with the content of the file.
 
 * `gen-char-class`: Generates character classification functions that do the same as their
 `isw*()` counterparts under the current locale as specified by `LC_ALL` environment variable.
@@ -328,5 +328,5 @@ Run `tools/gen-char-class --help` for further details, or `tools/gen-char-class 
 to see an example of its output.
 
 ## Project Status
-The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3
+The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3 and 20,
 with `gcc` versions up to 9.3.0, and `clang` versions up to 10.0.0.

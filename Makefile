@@ -4,6 +4,7 @@ MAKEFLAGS += --no-builtin-variables
 
 # flags
 CFLAGS := -ggdb -std=c11 -Wall -Wextra -Werror=implicit-function-declaration	\
+	-Wformat -Werror=format-security	\
 	-fno-omit-frame-pointer	\
 	-fsanitize=address -fsanitize=leak -fsanitize=undefined	\
 	-fsanitize-address-use-after-scope

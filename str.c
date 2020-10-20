@@ -228,7 +228,7 @@ int str_from_file(str* const dest, const char* const file_name)
 	if(fd == -1)
 		return errno;
 
-	off_t size;
+	off_t size = 0;
 	int err = get_file_size(fd, &size);
 
 	if(err == 0)

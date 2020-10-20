@@ -312,9 +312,21 @@ void _str_cat_range(str* const dest, const str* src, size_t count)
 // writing to file descriptor
 int _str_cpy_to_fd(const int fd, const str s)
 {
-	const size_t n = str_len(s);
+	size_t n = str_len(s);
+	const void* p = str_ptr(s);
 
-	return (n > 0 && write(fd, str_ptr(s), n) < 0) ? errno : 0;
+	while(n > 0)
+	{
+		const ssize_t m = write(fd, p, n);
+
+		if(m < 0)
+			return errno;
+
+		n -= m;
+		p += m;
+	}
+
+	return 0;
 }
 
 // writing to byte stream
@@ -325,6 +337,35 @@ int _str_cpy_to_stream(FILE* const stream, const str s)
 	return (n > 0 && fwrite(str_ptr(s), 1, n, stream) < n) ? EIO : 0;
 }
 
+// write iovec
+static
+int write_iovec(const int fd, struct iovec* pv, unsigned nv)
+{
+	while(nv > 0)
+	{
+		ssize_t n = writev(fd, pv, nv);
+
+		if(n < 0)
+			return errno;
+
+		// discard items already written
+		for(; nv > 0; ++pv, --nv)
+		{
+			if(n < (ssize_t)pv->iov_len)
+			{
+				pv->iov_base += n;
+				pv->iov_len -= n;
+				break;
+			}
+
+			n -= (ssize_t)pv->iov_len;
+		}
+	}
+
+	return 0;
+}
+
+// concatenate to file descriptor
 static
 struct iovec* vec_append(struct iovec* pv, const str s)
 {
@@ -358,8 +399,10 @@ int _str_cat_range_to_fd(const int fd, const str* src, size_t count)
 		if(n == 0)
 			break;
 
-		if(writev(fd, v, n) < 0)
-			return errno;
+		const int ret = write_iovec(fd, v, n);
+
+		if(ret != 0)
+			return ret;
 	}
 
 	return 0;
@@ -444,8 +487,10 @@ int _str_join_range_to_fd(const int fd, const str sep, const str* src, size_t co
 		if(n == 0)
 			break;
 
-		if(writev(fd, v, n) < 0)
-			return errno;
+		const int ret = write_iovec(fd, v, n);
+
+		if(ret != 0)
+			return ret;
 	}
 
 	return 0;

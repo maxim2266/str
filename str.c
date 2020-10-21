@@ -221,11 +221,28 @@ int get_file_size(const int fd, off_t* const size)
 	}
 }
 
+static
+int read_from_fd(const int fd, void* p, off_t* const psize)
+{
+	const void* const end = p + *psize;
+	ssize_t n;
+
+	if((n = read(fd, p, end - p)) < 0)
+		return errno;
+
+	for(p += n; n > 0 && p < end; p += n)
+		if((n = read(fd, p, end - p)) < 0)
+			return errno;
+
+	*psize -= end - p;
+	return 0;
+}
+
 int str_from_file(str* const dest, const char* const file_name)
 {
 	const int fd = open(file_name, O_CLOEXEC | O_RDONLY);
 
-	if(fd == -1)
+	if(fd < 0)
 		return errno;
 
 	off_t size = 0;
@@ -237,17 +254,24 @@ int str_from_file(str* const dest, const char* const file_name)
 			str_clear(dest);
 		else
 		{
-			char* const buff = str_mem_alloc(size + 1);
-			const ssize_t n = read(fd, buff, size);
+			char* buff = str_mem_alloc(size + 1);
+			const off_t cap = size;
 
-			err = (n == -1) ? errno
-				: (n != size) ? EAGAIN
-				: 0;
-
-			if(err == 0)
+			if((err = read_from_fd(fd, buff, &size)) == 0)
 			{
-				buff[n] = 0;
-				str_assign(dest, str_acquire_chars(buff, n));
+				if(size == 0)
+				{
+					str_mem_free(buff);
+					str_clear(dest);
+				}
+				else
+				{
+					if(size < cap)
+						buff = str_mem_realloc(buff, size + 1);
+
+					buff[size] = 0;
+					str_assign(dest, str_acquire_chars(buff, size));
+				}
 			}
 			else
 				str_mem_free(buff);

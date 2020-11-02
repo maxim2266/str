@@ -391,7 +391,7 @@ int write_iovec(const int fd, struct iovec* pv, unsigned nv)
 
 // concatenate to file descriptor
 static
-struct iovec* vec_append(struct iovec* pv, const str s)
+struct iovec* vec_append(struct iovec* const pv, const str s)
 {
 	*pv = (struct iovec){ (void*)str_ptr(s), str_len(s) };
 
@@ -399,7 +399,7 @@ struct iovec* vec_append(struct iovec* pv, const str s)
 }
 
 static
-struct iovec* vec_append_nonempty(struct iovec* pv, const str s)
+struct iovec* vec_append_nonempty(struct iovec* const pv, const str s)
 {
 	return str_is_empty(s) ? pv : vec_append(pv, s);
 }

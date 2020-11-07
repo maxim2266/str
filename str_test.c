@@ -628,8 +628,11 @@ void test_unique_range(void)
 static
 void test_from_file(void)
 {
-	const char* const tmp = tmpnam(NULL);
-	FILE* const stream = fopen(tmp, "w");
+	str fname = str_null;
+
+	str_cat(&fname, str_lit("tmp_"), str_ref_chars(__func__, sizeof(__func__) - 1));
+
+	FILE* const stream = fopen(str_ptr(fname), "w");
 
 	assert(stream);
 	assert(str_join(stream, str_lit(" "), str_lit("aaa"), str_lit("bbb"), str_lit("ccc")) == 0);
@@ -637,8 +640,8 @@ void test_from_file(void)
 
 	str res = str_null;
 
-	assert(str_from_file(&res, tmp) == 0);
-	unlink(tmp);
+	assert(str_from_file(&res, str_ptr(fname)) == 0);
+	unlink(str_ptr(fname));
 	assert(str_eq(res, str_lit("aaa bbb ccc")));
 	assert(str_is_owner(res));
 
@@ -648,6 +651,7 @@ void test_from_file(void)
 	assert(str_from_file(&res, "does-not-exist") == ENOENT);
 
 	str_free(res);
+	str_free(fname);
 	passed;
 }
 

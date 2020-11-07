@@ -3,13 +3,17 @@ MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --no-builtin-variables
 
 # flags
-CFLAGS := -ggdb -std=c11 -pipe -Wall -Wextra -Werror=implicit-function-declaration	\
-	-Wformat -Werror=format-security	\
-	-fno-omit-frame-pointer	\
-	-fsanitize=address -fsanitize=leak -fsanitize=undefined	\
-	-fsanitize-address-use-after-scope
+test: CFLAGS := -ggdb -std=c11 -pipe -Wall -Wextra -Werror=implicit-function-declaration	\
+		-Wformat -Werror=format-security	\
+		-fno-omit-frame-pointer	\
+		-fsanitize=address -fsanitize=leak -fsanitize=undefined	\
+		-fsanitize-address-use-after-scope
 
-# source files
+flto-test: CFLAGS := -s -O2 -pipe -std=c11 -Wall -Wextra -flto -march=native -mtune=native
+
+tools: CFLAGS := -s -O2 -pipe -std=c11 -Wall -Wextra
+
+# str library source files
 SRC := str.c str.h str_test.c
 
 # compiler
@@ -25,12 +29,11 @@ clean: clean-test clean-tools
 
 # test
 test: $(SRC)
-	@$(CC) --version | head -n 1
 	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
 	./$@
 
 flto-test: $(SRC)
-	$(CC) -s -O2 -flto -pipe -std=c11 -Wall -Wextra -march=native -mtune=native -o $@ $(filter %.c,$^)
+	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
 	./$@
 
 .PHONY: clean-test
@@ -43,11 +46,9 @@ GEN_CHAR_CLASS := tools/gen-char-class
 .PHONY: tools
 tools: $(GEN_CHAR_CLASS)
 
-TOOL_CFLAGS := -s -O2 -pipe -std=c11 -Wall -Wextra
-
 # gen-char-class
 $(GEN_CHAR_CLASS): tools/gen_char_class.c
-	$(CC) $(TOOL_CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
 
 .PHONY: clean-tools
 clean-tools:

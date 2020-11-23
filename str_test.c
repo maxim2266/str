@@ -7,6 +7,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <locale.h>
 
 // make sure assert is always enabled
 #ifdef NDEBUG
@@ -655,6 +656,37 @@ void test_from_file(void)
 	passed;
 }
 
+#ifdef __STDC_UTF_32__
+
+static
+void test_codepoint_iterator(void)
+{
+	const str src = str_lit(u8"жёлтый");	// means "yellow" in Russian
+	static const char32_t src32[] = { U'ж', U'ё', U'л', U'т', U'ы', U'й' };
+	size_t i = 0;
+	char32_t c;
+
+	for_each_codepoint(c, src)
+	{
+		assert(i < sizeof(src32)/sizeof(src32[0]));
+		assert(c == src32[i++]);
+	}
+
+	assert(c == CPI_END_OF_STRING);
+	assert(i == sizeof(src32)/sizeof(src32[0]));
+
+	// empty string iteration
+	c = 0;
+
+	for_each_codepoint(c, str_null)
+		assert(0);
+
+	assert(c == CPI_END_OF_STRING);
+	passed;
+}
+
+#endif	// ifdef __STDC_UTF_32__
+
 int main(void)
 {
 	// tests
@@ -685,6 +717,12 @@ int main(void)
 	test_partition_range();
 	test_unique_range();
 	test_from_file();
+
+#ifdef __STDC_UTF_32__
+	assert(setlocale(LC_ALL, "C.UTF-8"));
+
+	test_codepoint_iterator();
+#endif
 
 	return puts("OK.") < 0;
 }

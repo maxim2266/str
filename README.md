@@ -303,6 +303,39 @@ remaining objects. The unique partition is stored at the beginning of the array,
 sorted in ascending order, followed by the partition with all remaining objects.
 Returns the number of unique objects.
 
+#### UNICODE support
+
+`for_each_codepoint(var_name, src_string)`<br>
+A macro that expands to a loop iterating over the given string `src_string` (of type `str`) by UTF-32
+code points. On each iteration the variable `var_name` (of type `char32_t`) is assigned
+the value of the next valid UTF-32 code point from the source string. Upon exit from the loop the
+variable has one on the following values:
+* `CPI_END_OF_STRING`: the iteration has reached the end of source string;
+* `CPI_ERR_INCOMPLETE_SEQ`: an incomplete byte sequence has been detected;
+* `CPI_ERR_INVALID_ENCODING`: an invalid byte sequence has been detected.
+
+The source string is expected to be encoded in the _current program locale_, as set by the most
+recent call to `setlocale(3)`.
+
+Usage pattern:
+```c
+#include <uchar.h>
+...
+str s = ...
+...
+char32_t c;
+
+for_each_codepoint(c, s)
+{
+	/* process c */
+}
+
+if(c != CPI_END_OF_STRING)
+{
+	/* handle error */
+}
+```
+
 #### Memory Management
 
 `void str_free(const str s)`<br>

@@ -195,7 +195,7 @@ void _str_dup(str* const dest, const str s)
 }
 
 #ifndef STR_MAX_FILE_SIZE
-#define STR_MAX_FILE_SIZE	(256 * 1024 * 1024)
+#define STR_MAX_FILE_SIZE	(256 * 1024 * 1024 - 1)
 #endif
 
 static
@@ -615,3 +615,32 @@ size_t str_unique_range(str* const array, const size_t count)
 
 	return p + 1 - array;
 }
+
+// string iterator function
+#ifdef __STDC_UTF_32__
+
+char32_t _cp_iterator_next(_cp_iterator* const it)
+{
+	if(it->curr >= it->end)
+		return CPI_END_OF_STRING;
+
+	char32_t c;
+	const size_t n = mbrtoc32(&c, it->curr, it->end - it->curr, &it->state);
+
+	switch(n)	// see https://en.cppreference.com/w/c/string/multibyte/mbrtoc32
+	{
+		case 0:				// null character (U+0000) is allowed
+			++it->curr;
+			return 0;
+		case (size_t)-1:	// encoding error
+		case (size_t)-3:	// surrogate pair detected
+			return CPI_ERR_INVALID_ENCODING;
+		case (size_t)-2:	// incomplete sequence
+			return CPI_ERR_INCOMPLETE_SEQ;
+		default:			// ok
+			it->curr += n;
+			return c;
+	}
+}
+
+#endif	// ifdef __STDC_UTF_32__

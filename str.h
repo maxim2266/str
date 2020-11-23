@@ -223,6 +223,43 @@ size_t str_partition_range(bool (*pred)(const str), str* const array, const size
 // unique partitioning
 size_t str_unique_range(str* const array, const size_t count);
 
+// UTF-32 codepoint iterator ----------------------------------------------------------------
+#ifdef __STDC_UTF_32__
+#include <uchar.h>
+
+// iterator
+#define for_each_codepoint(var, src)	\
+	_for_each_cp((var), (src), _CAT(__it_, __COUNTER__))
+
+// iterator error codes
+#define CPI_END_OF_STRING			((char32_t)-1)
+#define CPI_ERR_INCOMPLETE_SEQ		((char32_t)-2)
+#define CPI_ERR_INVALID_ENCODING	((char32_t)-3)
+
+// implementation
+#define _for_each_cp(var, src, it)	\
+	for(_cp_iterator it = _make_cp_iterator(src); (var = _cp_iterator_next(&it)) <= 0x10FFFFu;)
+
+#define _CAT(x, y)	__CAT(x, y)
+#define __CAT(x, y)	x ## y
+
+typedef struct
+{
+	const char* curr;
+	const char* const end;
+	mbstate_t state;
+} _cp_iterator;
+
+static inline
+_cp_iterator _make_cp_iterator(const str s)
+{
+	return (_cp_iterator){ .curr = str_ptr(s), .end = str_end(s) };
+}
+
+char32_t _cp_iterator_next(_cp_iterator* const it);
+
+#endif	// ifdef __STDC_UTF_32__
+
 #ifdef __cplusplus
 }
 #endif

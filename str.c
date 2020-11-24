@@ -54,39 +54,11 @@ void* mempcpy(void* dest, const void* src, const size_t n)
 }
 #endif
 
-// memory allocation
-#ifdef STR_REALLOC
-
-void* STR_REALLOC(void* ptr, size_t size);	// defined elsewhere
-
-#define str_mem_realloc	STR_REALLOC
-
-#else
-
-static
-void* str_mem_realloc(void* s, size_t n)
-{
-	void* const p = realloc(s, n);
-
-	if(p || n == 0)
-		return p;
-
-	if(errno == 0)	// a fix for some sub-standard memory allocators
-		errno = ENOMEM;
-
-	perror("fatal error");
-	abort();
-}
-
-#endif	// #ifdef STR_REALLOC
-
-#define str_mem_alloc(n)	str_mem_realloc(NULL, (n))
-
 static inline
 void str_mem_free(void* p)
 {
 	if(p)
-		str_mem_realloc(p, 0);
+		free(p);
 }
 
 // string deallocation
@@ -95,6 +67,22 @@ void str_free(const str s)
 	if(str_is_owner(s))
 		str_mem_free((void*)s.ptr);
 }
+
+// memory allocation helpers
+#define ALLOC(n)	\
+({	\
+	void* const ___p = malloc(n);	\
+	if(!___p) return ENOMEM;	\
+	___p;	\
+})
+
+#define REALLOC(p, n)	\
+({	\
+	void* const ___s = (p);	\
+	void* const ___p = realloc(___s, (n));	\
+	if(!___p) { str_mem_free(___s); return ENOMEM; }	\
+	___p;	\
+})
 
 // swap
 void str_swap(str* const s1, str* const s2)
@@ -179,7 +167,7 @@ str str_acquire(const char* const s)
 }
 
 // allocate a copy of the given string
-void _str_dup(str* const dest, const str s)
+int _str_dup(str* const dest, const str s)
 {
 	const size_t n = str_len(s);
 
@@ -187,15 +175,17 @@ void _str_dup(str* const dest, const str s)
 		str_clear(dest);
 	else
 	{
-		char* const p = memcpy(str_mem_alloc(n + 1), str_ptr(s), n);
+		char* const p = memcpy(ALLOC(n + 1), str_ptr(s), n);
 
 		p[n] = 0;
 		str_assign(dest, str_acquire_chars(p, n));
 	}
+
+	return 0;
 }
 
 #ifndef STR_MAX_FILE_SIZE
-#define STR_MAX_FILE_SIZE	(256 * 1024 * 1024 - 1)
+#define STR_MAX_FILE_SIZE	(64 * 1024 * 1024 - 1)
 #endif
 
 static
@@ -238,6 +228,40 @@ int read_from_fd(const int fd, void* p, off_t* const psize)
 	return 0;
 }
 
+static
+int str_from_fd(const int fd, const off_t size, str* const dest)
+{
+	if(size == 0)
+	{
+		str_clear(dest);
+		return 0;
+	}
+
+	char* buff = ALLOC(size + 1);
+	off_t n = size;
+	const int err = read_from_fd(fd, buff, &n);
+
+	if(err != 0)
+	{
+		free(buff);
+		return err;
+	}
+
+	if(n == 0)
+	{
+		free(buff);
+		str_clear(dest);
+		return 0;
+	}
+
+	if(n < size)
+		buff = REALLOC(buff, n + 1);
+
+	buff[n] = 0;
+	str_assign(dest, str_acquire_chars(buff, n));
+	return 0;
+}
+
 int str_from_file(str* const dest, const char* const file_name)
 {
 	const int fd = open(file_name, O_CLOEXEC | O_RDONLY);
@@ -249,34 +273,7 @@ int str_from_file(str* const dest, const char* const file_name)
 	int err = get_file_size(fd, &size);
 
 	if(err == 0)
-	{
-		if(size == 0)
-			str_clear(dest);
-		else
-		{
-			char* buff = str_mem_alloc(size + 1);
-			const off_t cap = size;
-
-			if((err = read_from_fd(fd, buff, &size)) == 0)
-			{
-				if(size == 0)
-				{
-					str_mem_free(buff);
-					str_clear(dest);
-				}
-				else
-				{
-					if(size < cap)
-						buff = str_mem_realloc(buff, size + 1);
-
-					buff[size] = 0;
-					str_assign(dest, str_acquire_chars(buff, size));
-				}
-			}
-			else
-				str_mem_free(buff);
-		}
-	}
+		err = str_from_fd(fd, size, dest);
 
 	close(fd);
 	return err;
@@ -302,12 +299,12 @@ size_t total_length(const str* src, size_t count)
 }
 
 // concatenate strings
-void _str_cat_range(str* const dest, const str* src, size_t count)
+int _str_cat_range(str* const dest, const str* src, size_t count)
 {
 	if(!src)
 	{
 		str_clear(dest);
-		return;
+		return 0;
 	}
 
 	// calculate total length
@@ -316,11 +313,11 @@ void _str_cat_range(str* const dest, const str* src, size_t count)
 	if(num == 0)
 	{
 		str_clear(dest);
-		return;
+		return 0;
 	}
 
 	// allocate
-	char* const buff = str_mem_alloc(num + 1);
+	char* const buff = ALLOC(num + 1);
 
 	// copy bytes
 	char* p = buff;
@@ -331,6 +328,7 @@ void _str_cat_range(str* const dest, const str* src, size_t count)
 	// null-terminate and assign
 	*p = 0;
 	str_assign(dest, str_acquire_chars(buff, num));
+	return 0;
 }
 
 // writing to file descriptor
@@ -446,32 +444,26 @@ int _str_cat_range_to_stream(FILE* const stream, const str* src, size_t count)
 }
 
 // join strings
-void _str_join_range(str* const dest, const str sep, const str* src, size_t count)
+int _str_join_range(str* const dest, const str sep, const str* src, size_t count)
 {
 	// test for simple cases
 	if(str_is_empty(sep))
-	{
-		str_cat_range(dest, src, count);
-		return;
-	}
+		return str_cat_range(dest, src, count);
 
 	if(!src || count == 0)
 	{
 		str_clear(dest);
-		return;
+		return 0;
 	}
 
 	if(count == 1)
-	{
-		str_cpy(dest, *src);
-		return;
-	}
+		return str_cpy(dest, *src);
 
 	// calculate total length
 	const size_t num = total_length(src, count) + str_len(sep) * (count - 1);
 
 	// allocate
-	char* const buff = str_mem_alloc(num + 1);
+	char* const buff = ALLOC(num + 1);
 
 	// copy bytes
 	char* p = append_str(buff, *src++);
@@ -482,6 +474,7 @@ void _str_join_range(str* const dest, const str sep, const str* src, size_t coun
 	// null-terminate and assign
 	*p = 0;
 	str_assign(dest, str_acquire_chars(buff, num));
+	return 0;
 }
 
 int _str_join_range_to_fd(const int fd, const str sep, const str* src, size_t count)

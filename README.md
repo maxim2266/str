@@ -51,7 +51,7 @@ if(err != 0) { /* handle the error */ }
 
 ## User Guide
 
-_**Disclaimer:** This is the good old C language, not Rust, so nothing can be enforced
+_**Disclaimer:** This is the good old C language, not C++ or Rust, so nothing can be enforced
 on the language level, and certain discipline is required to make sure there is no corrupt
 or leaked memory resulting from using this library._
 
@@ -68,7 +68,7 @@ This library focusses only on handling strings, not gradually composing them lik
 [StringBuffer](https://docs.oracle.com/javase/7/docs/api/java/lang/StringBuffer.html)
 class in Java.
 
-All string objects must be initialised. Uninitialised objects are likely to cause
+All string objects must be initialised. Uninitialised objects will cause
 undefined behaviour. Use the provided constructors, or `str_null` for empty strings.
 
 There are two kinds of `str` objects: those actually owning the memory they point to, and
@@ -78,7 +78,7 @@ functions, otherwise such objects are indistinguishable.
 Non-owning string objects are safe to copy and assign to each other, as long as the memory
 they refer to is valid. They do not need to be freed. `str_free` is a no-op for reference
 objects. A reference object can be cheaply created from a C string, a string literal,
-or just a range of bytes.
+or from a range of bytes.
 
 Owning objects require special treatment, in particular:
 * It is a good idea to have only one owning object per each allocated string, but such
@@ -133,8 +133,8 @@ destinations, depending on the _type_ of their `dest` parameter:
 * `int`: result is written to the file descriptor;
 * `FILE*` result is written to the file stream.
 
-When writing to a file descriptor or a stream, the composition functions return integer 0
-on success, or the value of `errno` as retrieved at the point of failure.
+The composition functions return 0 on success, or the value of `errno` as retrieved at the point
+of failure (including `ENOMEM` on memory allocation error).
 
 ### Detailed Example
 
@@ -144,7 +144,9 @@ Just to make things more clear, here is the same code as in the example above, b
 str s = str_null;
 
 // join the given string literals around the separator (second parameter),
-// storing the result in object "s" (first parameter)
+// storing the result in object "s" (first parameter); in this example we do not check
+// the return values of the composition functions, thus ignoring memory allocation failures,
+// which is probably not the best idea in general.
 str_join(&s, str_lit(", "),
          str_lit("Here"),
          str_lit("there"),
@@ -257,25 +259,30 @@ Tests if the given string `s` ends with the specified suffix.
 
 #### String Composition
 
-`str_cpy(dest, const str src)`<br>
-Copies the source string referenced by `src`
-to the [generic](#string-composition-and-generic-destination) destination `dest`.
+`int str_cpy(dest, const str src)`<br>
+Copies the source string referenced by `src` to the
+[generic](#string-composition-and-generic-destination) destination `dest`. Returns 0 on success,
+or the value of `errno` on failure.
 
-`str_cat_range(dest, const str* src, size_t count)`<br>
+`int str_cat_range(dest, const str* src, size_t count)`<br>
 Concatenates `count` strings from the array starting at address `src`, and writes
 the result to the [generic](#string-composition-and-generic-destination) destination `dest`.
+Returns 0 on success, or the value of `errno` on failure.
 
-`str_cat(dest, ...)`<br>
+`int str_cat(dest, ...)`<br>
 Concatenates a variable list of `str` arguments, and writes the result to the
 [generic](#string-composition-and-generic-destination) destination `dest`.
+Returns 0 on success, or the value of `errno` on failure.
 
-`str_join_range(dest, const str sep, const str* src, size_t count)`<br>
+`int str_join_range(dest, const str sep, const str* src, size_t count)`<br>
 Joins around `sep` the `count` strings from the array starting at address `src`, and writes
 the result to the [generic](#string-composition-and-generic-destination) destination `dest`.
+Returns 0 on success, or the value of `errno` on failure.
 
-`str_join(dest, sep, ...)`<br>
+`int str_join(dest, sep, ...)`<br>
 Joins around `sep` the variable list of `str` arguments, and writes the result to the
 [generic](#string-composition-and-generic-destination) destination `dest`.
+Returns 0 on success, or the value of `errno` on failure.
 
 #### Sorting and Searching
 
@@ -335,17 +342,6 @@ if(c != CPI_END_OF_STRING)
 	/* handle error */
 }
 ```
-
-#### Memory Management
-
-`void str_free(const str s)`<br>
-Release any memory owned by the given object; no-op for references.
-
-By default the library uses `realloc(3)` for handling memory, and calls `abort(3)`
-if an allocation fails. This behaviour can be changed by compiling the library with
-`STR_REALLOC` symbol defined to be the name of a function that implements the functionality
-of `realloc(3)` _and_ handles out-of-memory situations. The function signature should be:<br>
-`void* your_reallocation_function(void*, size_t)`
 
 ## Tools
 

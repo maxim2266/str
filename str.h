@@ -121,7 +121,7 @@ bool str_has_suffix(const str s, const str suffix);
 
 // string composition ------------------------------------------------------------------
 // implementation helpers
-void _str_dup(str* const dest, const str s);
+int _str_dup(str* const dest, const str s);
 int _str_cpy_to_fd(const int fd, const str s);
 int _str_cpy_to_stream(FILE* const stream, const str s);
 
@@ -134,7 +134,7 @@ int _str_cpy_to_stream(FILE* const stream, const str s);
 	)((dest), (src))
 
 // implementation helpers
-void _str_cat_range(str* const dest, const str* src, size_t count);
+int _str_cat_range(str* const dest, const str* src, size_t count);
 int _str_cat_range_to_fd(const int fd, const str* src, size_t count);
 int _str_cat_range_to_stream(FILE* const stream, const str* src, size_t count);
 
@@ -154,7 +154,7 @@ int _str_cat_range_to_stream(FILE* const stream, const str* src, size_t count);
 })
 
 // implementation helpers
-void _str_join_range(str* const dest, const str sep, const str* src, size_t count);
+int _str_join_range(str* const dest, const str sep, const str* src, size_t count);
 int _str_join_range_to_fd(const int fd, const str sep, const str* src, size_t count);
 int _str_join_range_to_stream(FILE* const stream, const str sep, const str* src, size_t count);
 

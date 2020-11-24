@@ -36,7 +36,7 @@ void test_str_dup(void)
 {
 	str s = str_null;
 
-	str_cpy(&s, str_lit("ZZZ"));
+	assert(str_cpy(&s, str_lit("ZZZ")) == 0);
 
 	assert(str_len(s) == 3);
 	assert(!str_is_ref(s));
@@ -53,7 +53,7 @@ void test_str_clear(void)
 {
 	str s = str_null;
 
-	str_cpy(&s, str_lit("ZZZ"));
+	assert(str_cpy(&s, str_lit("ZZZ")) == 0);
 
 	assert(str_len(s) == 3);
 	assert(str_is_owner(s));
@@ -72,7 +72,7 @@ void test_str_move(void)
 {
 	str s1 = str_null;
 
-	str_cpy(&s1, str_lit("ZZZ"));
+	assert(str_cpy(&s1, str_lit("ZZZ")) == 0);
 
 	str s2 = str_move(&s1);
 
@@ -164,13 +164,13 @@ void test_str_cat(void)
 {
 	str s = str_null;
 
-	str_cat(&s, str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
+	assert(str_cat(&s, str_lit("AAA"), str_lit("BBB"), str_lit("CCC")) == 0);
 
 	assert(str_eq(s, str_lit("AAABBBCCC")));
 	assert(str_is_owner(s));
 	assert(*str_end(s) == 0);
 
-	str_cat(&s, str_null, str_null, str_null);	// this simply clears the target string
+	assert(str_cat(&s, str_null, str_null, str_null) == 0);	// this simply clears the target string
 
 	assert(str_is_empty(s));
 	assert(str_is_ref(s));
@@ -183,37 +183,37 @@ void test_str_join(void)
 {
 	str s = str_null;
 
-	str_join(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_lit("CCC"));
+	assert(str_join(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_lit("CCC")) == 0);
 
 	assert(str_eq(s, str_lit("AAA_BBB_CCC")));
 	assert(str_is_owner(s));
 	assert(*str_end(s) == 0);
 
-	str_join(&s, str_lit("_"), str_null, str_lit("BBB"), str_lit("CCC"));
+	assert(str_join(&s, str_lit("_"), str_null, str_lit("BBB"), str_lit("CCC")) == 0);
 
 	assert(str_eq(s, str_lit("_BBB_CCC")));
 	assert(str_is_owner(s));
 	assert(*str_end(s) == 0);
 
-	str_join(&s, str_lit("_"), str_lit("AAA"), str_null, str_lit("CCC"));
+	assert(str_join(&s, str_lit("_"), str_lit("AAA"), str_null, str_lit("CCC")) == 0);
 
 	assert(str_eq(s, str_lit("AAA__CCC")));
 	assert(str_is_owner(s));
 	assert(*str_end(s) == 0);
 
-	str_join(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_null);
+	assert(str_join(&s, str_lit("_"), str_lit("AAA"), str_lit("BBB"), str_null) == 0);
 
 	assert(str_eq(s, str_lit("AAA_BBB_")));
 	assert(str_is_owner(s));
 	assert(*str_end(s) == 0);
 
-	str_join(&s, str_lit("_"), str_null, str_null, str_null);
+	assert(str_join(&s, str_lit("_"), str_null, str_null, str_null) == 0);
 
 	assert(str_eq(s, str_lit("__")));
 	assert(str_is_owner(s));
 	assert(*str_end(s) == 0);
 
-	str_join(&s, str_null);	// this simply clears the target string
+	assert(str_join(&s, str_null) == 0);	// this simply clears the target string
 
 	assert(str_is_empty(s));
 	assert(str_is_ref(s));
@@ -226,8 +226,8 @@ void test_composition(void)
 {
 	str s = str_lit(", ");
 
-	str_join(&s, s, str_lit("Here"), str_lit("there"), str_lit("and everywhere"));
-	str_cat(&s, s, str_lit("..."));
+	assert(str_join(&s, s, str_lit("Here"), str_lit("there"), str_lit("and everywhere")) == 0);
+	assert(str_cat(&s, s, str_lit("...")) == 0);
 
 	assert(str_eq(s, str_lit("Here, there, and everywhere...")));
 	assert(str_is_owner(s));
@@ -416,7 +416,7 @@ void test_cat_large_range_to_fd(void)
 	char buff[100];
 
 	for(unsigned i = 0; i < n; i++)
-		str_cpy(&src[i], str_ref_chars(buff, sprintf(buff, "%u\n", i)));
+		assert(str_cpy(&src[i], str_ref_chars(buff, sprintf(buff, "%u\n", i))) == 0);
 
 	// write to file
 	FILE* const tmp = tmpfile();
@@ -516,7 +516,7 @@ void test_join_large_range_to_fd(void)
 	char buff[100];
 
 	for(unsigned i = 0; i < n; i++)
-		str_cpy(&src[i], str_ref_chars(buff, sprintf(buff, "%u", i)));
+		assert(str_cpy(&src[i], str_ref_chars(buff, sprintf(buff, "%u", i))) == 0);
 
 	// write to file
 	FILE* const tmp = tmpfile();
@@ -631,7 +631,7 @@ void test_from_file(void)
 {
 	str fname = str_null;
 
-	str_cat(&fname, str_lit("tmp_"), str_ref_chars(__func__, sizeof(__func__) - 1));
+	assert(str_cat(&fname, str_lit("tmp_"), str_ref_chars(__func__, sizeof(__func__) - 1)) == 0);
 
 	FILE* const stream = fopen(str_ptr(fname), "w");
 

@@ -105,7 +105,12 @@ allocated by the library is guaranteed to be null-terminated.
 A string object can be constructed form any C string, string literal, or a range of bytes.
 The provided constructors are computationally cheap to apply. Depending on the constructor,
 the new object can either own the actual string it refers to, or be a non-owning reference.
-Constructors themselves do not allocate any memory.
+Constructors themselves do not allocate any memory. Importantly, constructors are the only
+functions in this library that return a string object, while others assign their results
+through a pointer to a pre-existing string. This makes constructors suitable for initialisation
+of new string objects. In all other situations one should combine construction with assignment,
+for example:<br>
+`str_assign(&dest, str_acquire_chars(buff, n));`
 
 ### String Object Properties
 
@@ -358,5 +363,5 @@ to see an example of its output.
 
 ## Project Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3 and 20,
-with `gcc` versions up to 9.3.0, and `clang` versions up to 10.0.0; and on ALT Linux 9.1 for
-Elbrus, with `lcc` version 1.25.09.
+with `gcc` versions up to 9.3.0, and `clang` versions up to 10.0.0; it is also reported to work 
+on ALT Linux 9.1 for Elbrus, with `lcc` version 1.25.09.

@@ -134,7 +134,7 @@ assigned to an existing object using `str_assign`.
 String composition [functions](#string-composition) can write their results to different
 destinations, depending on the _type_ of their `dest` parameter:
 
-* `str*`: result is written to allocated memory and the reference to it is stored in the string object;
+* `str*`: result is assigned to the string object;
 * `int`: result is written to the file descriptor;
 * `FILE*` result is written to the file stream.
 
@@ -176,9 +176,6 @@ str_free(s);
 `typedef struct { ... } str;`<br>
 The string object.
 
-`str_null`<br>
-Empty string constant.
-
 #### String Properties
 
 `size_t str_len(const str s)`<br>
@@ -204,6 +201,9 @@ Returns "true" if the string object does not own the memory it references.
 
 #### String Construction
 
+`str_null`<br>
+Empty string constant.
+
 `str str_lit(s)`<br>
 Constructs a non-owning object from a string literal. Implemented as a macro.
 
@@ -215,22 +215,22 @@ Implemented as a macro.
 Constructs a non-owning object referencing the given range of bytes.
 
 `str str_acquire_chars(const char* const s, const size_t n)`<br>
-Constructs an owning object for the specified range of bytes. The range should be safe
+Constructs an owning object for the specified range of bytes. The pointer `s` should be safe
 to pass to `free(3)` function.
 
 `str str_acquire(const char* const s)`<br>
 Constructs an owning object from the given C string. The string should be safe to pass to
 `free(3)` function.
 
+`str str_move(str* const ps)`<br>
+Saves the given object to a temporary, resets the source object to `str_null`, and then
+returns the saved object.
+
 #### String Modification
 
 `void str_assign(str* const ps, const str s)`<br>
 Assigns the object `s` to the object pointed to by `ps`. Any memory owned by the target
 object is freed before the assignment.
-
-`str str_move(str* const ps)`<br>
-Saves the given object to a temporary, resets the source object to `str_null`, and then
-returns the saved object.
 
 `void str_clear(str* const ps)`<br>
 Sets the target object to `str_null` after freeing any memory owned by the target.
@@ -239,7 +239,7 @@ Sets the target object to `str_null` after freeing any memory owned by the targe
 Swaps two string objects.
 
 `int str_from_file(str* const dest, const char* const file_name)`<br>
-Reads the entire file (of up to 64MB by default, configuarable via `STR_MAX_FILE_SIZE`) into
+Reads the entire file (of up to 64MB by default, configurable via `STR_MAX_FILE_SIZE`) into
 the destination string. Returns 0 on success, or the value of `errno` on error.
 
 #### String Comparison
@@ -284,8 +284,8 @@ Joins around `sep` the `count` strings from the array starting at address `src`,
 the result to the [generic](#string-composition-and-generic-destination) destination `dest`.
 Returns 0 on success, or the value of `errno` on failure.
 
-`int str_join(dest, sep, ...)`<br>
-Joins around `sep` the variable list of `str` arguments, and writes the result to the
+`int str_join(dest, const str sep, ...)`<br>
+Joins a variable list of `str` arguments around `sep` delimiter, and writes the result to the
 [generic](#string-composition-and-generic-destination) destination `dest`.
 Returns 0 on success, or the value of `errno` on failure.
 
@@ -363,5 +363,5 @@ to see an example of its output.
 
 ## Project Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint 19.3 and 20,
-with `gcc` versions up to 9.3.0, and `clang` versions up to 10.0.0; it is also reported to work 
+with `gcc` versions up to 9.3.0, and `clang` versions up to 10.0.0; it is also reported to work
 on ALT Linux 9.1 for Elbrus, with `lcc` version 1.25.09.

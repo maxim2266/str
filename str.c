@@ -279,6 +279,22 @@ int str_from_file(str* const dest, const char* const file_name)
 	return err;
 }
 
+int str_from_stream(str* const dest, FILE* file)
+{
+	const int fd = fileno(file);
+
+	if(fd < 0)
+		return errno;
+
+	off_t size = 0;
+	int err = get_file_size(fd, &size);
+
+	if(err == 0)
+		err = str_from_fd(fd, size, dest);
+
+	return err;
+}
+
 // string composition -----------------------------------------------------------------------
 // append string
 static inline

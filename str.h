@@ -202,6 +202,9 @@ str str_acquire(const char* const s);
 // string from file
 int str_from_file(str* const dest, const char* const file_name);
 
+//string from stream, doesn't close FILE* after reading
+int str_from_stream(str* const dest, FILE* file);
+
 // sorting and searching --------------------------------------------------------------------
 // comparison functions
 typedef int (*str_cmp_func)(const void*, const void*);

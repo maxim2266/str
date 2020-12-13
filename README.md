@@ -36,7 +36,7 @@ assert(str_eq(s, str_lit("Here, there, and everywhere...")));
 str_free(s);
 ```
 
-Composing strings and writing to a file:
+Same as above, but writing to a file:
 
 ```C
 FILE* const stream = fopen(...);
@@ -170,6 +170,9 @@ assert(str_eq(s, str_lit("Here, there, and everywhere...")));
 // finally, free the memory allocated for the string
 str_free(s);
 ```
+
+There are some useful [code snippets](snippets.md) provided to assist with writing code using
+this library.
 
 ## API brief
 

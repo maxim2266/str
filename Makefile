@@ -3,15 +3,12 @@ MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --no-builtin-variables
 
 # flags
-test: CFLAGS := -ggdb -std=c11 -pipe -Wall -Wextra -Werror=implicit-function-declaration	\
-		-Wformat -Werror=format-security	\
-		-fno-omit-frame-pointer	\
-		-fsanitize=address -fsanitize=leak -fsanitize=undefined	\
-		-fsanitize-address-use-after-scope
+CC_WARN := -Wall -Wextra -Werror=implicit-function-declaration -Wformat -Werror=format-security
+CC_SAN := -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize-address-use-after-scope
 
-flto-test: CFLAGS := -s -O2 -pipe -std=c11 -Wall -Wextra -flto -march=native -mtune=native
-
-tools: CFLAGS := -s -O2 -pipe -std=c11 -Wall -Wextra
+test:      CFLAGS := -ggdb -std=c11 -pipe $(CC_WARN) -fno-omit-frame-pointer $(CC_SAN)
+flto-test: CFLAGS := -s -O2 -pipe -std=c11 $(CC_WARN) -flto -march=native -mtune=native
+tools:     CFLAGS := -s -O2 -pipe -std=c11 $(CC_WARN)
 
 # str library source files
 SRC := str.c str.h str_test.c

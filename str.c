@@ -155,15 +155,22 @@ str _str_ref_form_ptr(const char* const s)
 // take ownership of the given range of chars
 str str_acquire_chars(const char* const s, const size_t n)
 {
-	// take ownership even if the string is empty, because its memory is still allocated
-	return s ? ((str){ s, _owner_info(n) }) : str_null;
+	if(!s)
+		return str_null;
+
+	if(n == 0)
+	{
+		free((void*)s);
+		return str_null;
+	}
+
+	return (str){ s, _owner_info(n) };
 }
 
 // take ownership of the given C string
 str str_acquire(const char* const s)
 {
-	// take ownership even if the string is empty, because its memory is still allocated
-	return s ? ((str){ s, _owner_info(strlen(s)) }) : str_null;
+	return s ? str_acquire_chars(s, strlen(s)) : str_null;
 }
 
 // allocate a copy of the given string

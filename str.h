@@ -260,6 +260,17 @@ char32_t _cp_iterator_next(_cp_iterator* const it);
 
 #endif	// ifdef __STDC_UTF_32__
 
+// tokeniser --------------------------------------------------------------------------------
+typedef struct
+{
+	unsigned char bits[32];	// 256 / 8
+	const char *src, *end;
+} str_tok_state;
+
+void str_tok_init(str_tok_state* const state, const str src, const str delim_set);
+bool str_tok(str* const dest, str_tok_state* const state);
+void str_tok_delim(str_tok_state* const state, const str delim_set);
+
 #ifdef __cplusplus
 }
 #endif

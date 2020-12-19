@@ -644,3 +644,60 @@ char32_t _cp_iterator_next(_cp_iterator* const it)
 }
 
 #endif	// ifdef __STDC_UTF_32__
+
+// tokeniser
+static inline
+bool is_delim(const str_tok_state* const state, const char c)
+{
+	return state->bits[(unsigned char)c >> 3] & (1 << (c & 0x7));
+}
+
+static inline
+void set_bit(str_tok_state* const state, const char c)
+{
+	state->bits[(unsigned char)c >> 3] |= (1 << (c & 0x7));
+}
+
+void str_tok_delim(str_tok_state* const state, const str delim_set)
+{
+	memset(state->bits, 0, sizeof(state->bits));
+
+	const char* const end = str_end(delim_set);
+
+	for(const char* s = str_ptr(delim_set); s < end; ++s)
+		set_bit(state, *s);
+}
+
+void str_tok_init(str_tok_state* const state, const str src, const str delim_set)
+{
+	state->src = str_ptr(src);
+	state->end = str_end(src);
+
+	str_tok_delim(state, delim_set);
+}
+
+bool str_tok(str* const dest, str_tok_state* const state)
+{
+	// token start
+	const char* begin = state->src;
+
+	while(begin < state->end && is_delim(state, *begin))
+		++begin;
+
+	if(begin == state->end)
+	{
+		str_clear(dest);
+		return false;
+	}
+
+	// token end
+	const char* end = begin + 1;
+
+	while(end < state->end && !is_delim(state, *end))
+		++end;
+
+	state->src = end;
+	str_assign(dest, str_ref_chars(begin, end - begin));
+
+	return true;
+}

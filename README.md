@@ -351,6 +351,35 @@ if(c != CPI_END_OF_STRING)
 }
 ```
 
+#### Tokeniser
+
+Tokeniser interface provides functionality similar to `strtok(3)` function, but without
+modification of the source string, and is fully re-entrant.
+
+Typical usage:
+```C
+str_tok_state state;
+
+str_tok_init(&state, source_string, delimiter_set);
+
+str token = str_null;
+
+while(str_tok(&token, &state)) { /* process "token" */ }
+```
+
+`void str_tok_init(str_tok_state* const state, const str src, const str delim_set)`<br>
+Initialises tokeniser state with the given source string and delimiter set. The delimiter set
+is treated as a sequence of bytes, _not_ as a UTF-8 string.
+
+`bool str_tok(str* const dest, str_tok_state* const state)`<br>
+Retrieves the next token and stores it in the `dest` object. Returns `true` if the token has
+been read, or `false` if the end of input has been reached. Retrieved token is always
+a reference to a slice of the source string.
+
+`void str_tok_delim(str_tok_state* const state, const str delim_set)`<br>
+Changes the delimiter set associated with the given tokeniser state. The delimiter set is
+treated as a sequence of bytes, _not_ as a UTF-8 string.
+
 ## Tools
 
 All the tools are located in `tools/` directory. Currently, there are the following tools:

@@ -687,6 +687,95 @@ void test_codepoint_iterator(void)
 
 #endif	// ifdef __STDC_UTF_32__
 
+static
+void test_tok(void)
+{
+	typedef struct
+	{
+		const str src, delim;
+		const unsigned n_tok;
+		const str tok[3];
+	} test_data;
+
+	static const test_data t[] =
+	{
+		{
+			str_lit("a,b,c"),
+			str_lit(","),
+			3,
+			{ str_lit("a"), str_lit("b"), str_lit("c") }
+		},
+		{
+			str_lit(",,a,b,,c,"),
+			str_lit(","),
+			3,
+			{ str_lit("a"), str_lit("b"), str_lit("c") }
+		},
+		{
+			str_lit("aaa;=~bbb~,=ccc="),
+			str_lit(",;=~"),
+			3,
+			{ str_lit("aaa"), str_lit("bbb"), str_lit("ccc") }
+		},
+		{
+			str_lit(""),
+			str_lit(","),
+			0,
+			{ }
+		},
+		{
+			str_lit(""),
+			str_lit(""),
+			0,
+			{ }
+		},
+		{
+			str_lit(",.;,.;;.,;.,"),
+			str_lit(",.;"),
+			0,
+			{ }
+		},
+		{
+			str_lit("aaa,bbb,ccc"),
+			str_lit(""),
+			1,
+			{ str_lit("aaa,bbb,ccc") }
+		},
+		{
+			str_lit("aaa,bbb,ccc"),
+			str_lit(";-="),
+			1,
+			{ str_lit("aaa,bbb,ccc") }
+		}
+	};
+
+	for(unsigned i = 0; i < sizeof(t)/sizeof(t[0]); ++i)
+	{
+		unsigned tok_count = 0;
+
+		str tok = str_null;
+		str_tok_state state;
+
+		str_tok_init(&state, t[i].src, t[i].delim);
+
+		while(str_tok(&tok, &state))
+		{
+// 			printf("%u-%u: \"%.*s\" %zu\n",
+// 					i, tok_count, (int)str_len(tok), str_ptr(tok), str_len(tok));
+// 			fflush(stdout);
+
+			assert(tok_count < t[i].n_tok);
+			assert(str_eq(tok, t[i].tok[tok_count]));
+
+			++tok_count;
+		}
+
+		assert(tok_count == t[i].n_tok);
+	}
+
+	passed;
+}
+
 int main(void)
 {
 	// tests
@@ -717,6 +806,7 @@ int main(void)
 	test_partition_range();
 	test_unique_range();
 	test_from_file();
+	test_tok();
 
 #ifdef __STDC_UTF_32__
 	assert(setlocale(LC_ALL, "C.UTF-8"));

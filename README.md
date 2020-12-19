@@ -357,7 +357,7 @@ Tokeniser interface provides functionality similar to `strtok(3)` function. The 
 is fully re-entrant with no hidden state, and its input string is not modified while being
 parsed.
 
-Typical usage:
+##### Typical usage:
 ```C
 // declare and initialise tokeniser state
 str_tok_state state;
@@ -373,6 +373,8 @@ while(str_tok(&token, &state))
     /* process "token" */
 }
 ```
+
+##### Tokeniser API
 
 `void str_tok_init(str_tok_state* const state, const str src, const str delim_set)`<br>
 Initialises tokeniser state with the given source string and delimiter set. The delimiter set

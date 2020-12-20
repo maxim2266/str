@@ -49,3 +49,15 @@ Test case and usage example:
 
     str_free(s);
 ```
+
+##### Using `str` objects with `printf` family of functions
+
+Since a string object is not guaranteed to refer to a null-terminated string it should be formatted
+with explicitly specified length, for example:
+```C
+	str s = ...
+
+	printf("%.*s\n", (int)str_len(s), str_ptr(s));
+```
+_Note:_ The maximum length of the string is limited to `INT_MAX` bytes, and formatting will stop
+at the first null byte within the string.

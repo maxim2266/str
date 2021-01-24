@@ -299,6 +299,7 @@ Searches the string `src` for the substring `patt`, returning `true` if a match 
 Sets `prefix` to reference the substring preceding the match, or to the entire `src` string
 if the match is not found. Sets `suffix` to reference the part of the string after
 the match, or to an empty string if the match is not found. Empty pattern never matches.
+Both `prefix` and `suffix` must point to valid objects.
 
 `void str_sort_range(const str_cmp_func cmp, str* const array, const size_t count)`<br>
 Sorts the given array of `str` objects using the given comparison function. A number

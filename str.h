@@ -119,6 +119,9 @@ bool str_has_prefix(const str s, const str prefix);
 // test for suffix
 bool str_has_suffix(const str s, const str suffix);
 
+// string partitioning (substring search)
+bool str_partition(const str src, const str patt, str* const prefix, str* const suffix);
+
 // string composition ------------------------------------------------------------------
 // implementation helpers
 int _str_dup(str* const dest, const str s);

@@ -292,7 +292,13 @@ Joins a variable list of `str` arguments around `sep` delimiter, and writes the 
 [generic](#string-composition-and-generic-destination) destination `dest`.
 Returns 0 on success, or the value of `errno` on failure.
 
-#### Sorting and Searching
+#### Searching and Sorting
+
+`bool str_partition(const str src, const str patt, str* const prefix, str* const suffix)`<br>
+Searches the string `src` for the substring `patt`, returning `true` if a match is found.
+Sets `prefix` to reference the substring preceding the match, or to the entire `src` string
+if the match is not found. Sets `suffix` to reference the part of the string after
+the match, or to an empty string if the match is not found. Empty pattern never matches.
 
 `void str_sort_range(const str_cmp_func cmp, str* const array, const size_t count)`<br>
 Sorts the given array of `str` objects using the given comparison function. A number

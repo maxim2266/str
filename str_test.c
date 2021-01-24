@@ -776,6 +776,47 @@ void test_tok(void)
 	passed;
 }
 
+static
+void test_partition(void)
+{
+	typedef struct
+	{
+		const bool res;
+		const str src, patt, pref, suff;
+	} test_data;
+
+	static const test_data t[] =
+	{
+		{ true, str_lit("...abc..."), str_lit("abc"), str_lit("..."), str_lit("...") },
+		{ true, str_lit("......abc"), str_lit("abc"), str_lit("......"), str_null },
+		{ true, str_lit("abc......"), str_lit("abc"), str_null, str_lit("......") },
+
+		{ true, str_lit("...a..."), str_lit("a"), str_lit("..."), str_lit("...") },
+		{ true, str_lit("......a"), str_lit("a"), str_lit("......"), str_null },
+		{ true, str_lit("a......"), str_lit("a"), str_null, str_lit("......") },
+
+		{ false, str_lit("zzz"), str_null, str_lit("zzz"), str_null },
+		{ false, str_null, str_lit("zzz"), str_null, str_null },
+		{ false, str_null, str_null, str_null, str_null },
+
+		{ false, str_lit("...zzz..."), str_lit("xxx"), str_lit("...zzz..."), str_null },
+		{ false, str_lit("...xxz..."), str_lit("xxx"), str_lit("...xxz..."), str_null },
+		{ true, str_lit("...xxz...xxx."), str_lit("xxx"), str_lit("...xxz..."), str_lit(".") },
+		{ true, str_lit(u8"...цифры___"), str_lit(u8"цифры"), str_lit("..."), str_lit("___") }
+	};
+
+	for(unsigned i = 0; i < sizeof(t)/sizeof(t[0]); ++i)
+	{
+		str pref = str_lit("???"), suff = str_lit("???");
+
+		assert(str_partition(t[i].src, t[i].patt, &pref, &suff) == t[i].res);
+		assert(str_eq(pref, t[i].pref));
+		assert(str_eq(suff, t[i].suff));
+	}
+
+	passed;
+}
+
 int main(void)
 {
 	// tests
@@ -807,6 +848,7 @@ int main(void)
 	test_unique_range();
 	test_from_file();
 	test_tok();
+	test_partition();
 
 #ifdef __STDC_UTF_32__
 	assert(setlocale(LC_ALL, "C.UTF-8"));

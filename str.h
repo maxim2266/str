@@ -119,9 +119,6 @@ bool str_has_prefix(const str s, const str prefix);
 // test for suffix
 bool str_has_suffix(const str s, const str suffix);
 
-// string partitioning (substring search)
-bool str_partition(const str src, const str patt, str* const prefix, str* const suffix);
-
 // string composition ------------------------------------------------------------------
 // implementation helpers
 int _str_dup(str* const dest, const str s);
@@ -205,7 +202,10 @@ str str_acquire(const char* const s);
 // string from file
 int str_from_file(str* const dest, const char* const file_name);
 
-// sorting and searching --------------------------------------------------------------------
+// searching and sorting --------------------------------------------------------------------
+// string partitioning (substring search)
+bool str_partition(const str src, const str patt, str* const prefix, str* const suffix);
+
 // comparison functions
 typedef int (*str_cmp_func)(const void*, const void*);
 

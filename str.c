@@ -140,60 +140,6 @@ bool str_has_suffix(const str s, const str suffix)
 		|| (str_len(s) >= n && memcmp(str_end(s) - n, str_ptr(suffix), n) == 0);
 }
 
-// substring search
-#ifndef _GNU_SOURCE
-// an implementation of memmem(3)
-static
-const void* memmem(const void* s, const size_t len, const void* patt, size_t patt_len)
-{
-	switch(patt_len)
-	{
-		case 0:
-			return s;
-		case 1:
-			return memchr(s, *(const unsigned char*)patt, len);
-	}
-
-	const void* const end = s + len;
-	const int c = *(const unsigned char*)patt++;
-
-	--patt_len;
-
-	for(s = memchr(s, c, len); s && s + patt_len < end; ++s, s = memchr(s, c, end - s))
-		if(memcmp(s + 1, patt, patt_len) == 0)
-			return s;
-
-	return NULL;
-}
-#endif	// ifndef _GNU_SOURCE
-
-bool str_partition(const str src, const str patt, str* const prefix, str* const suffix)
-{
-	if(str_is_empty(src))
-	{
-		str_clear(prefix);
-		str_clear(suffix);
-		return false;
-	}
-
-	const size_t patt_len = str_len(patt);
-	const char* s = (patt_len > 0)
-					? memmem(str_ptr(src), str_len(src), str_ptr(patt), patt_len)
-					: NULL;
-
-	if(!s)
-	{
-		str_assign(prefix, str_ref(src));
-		str_clear(suffix);
-		return false;
-	}
-
-	str_assign(prefix, str_ref_chars(str_ptr(src), s - str_ptr(src)));
-	s += patt_len;
-	str_assign(suffix, str_ref_chars(s, str_end(src) - s));
-	return true;
-}
-
 // string constructors -----------------------------------------------------------------
 // create a reference to the given range of chars
 str str_ref_chars(const char* const s, const size_t n)
@@ -590,7 +536,67 @@ int _str_join_range_to_stream(FILE* const stream, const str sep, const str* src,
 	return err;
 }
 
-// sorting: comparison functions
+// searching and sorting --------------------------------------------------------------------
+// string partitioning
+#ifndef _GNU_SOURCE
+// an implementation of memmem(3) for the str_partition() function below
+static
+const void* memmem(const void* s, const size_t len, const void* patt, size_t patt_len)
+{
+	switch(patt_len)
+	{
+		case 0:
+			return s;
+		case 1:
+			return memchr(s, *(const unsigned char*)patt, len);
+	}
+
+	const void* const end = s + len;
+	const int c = *(const unsigned char*)patt++;
+
+	--patt_len;
+
+	for(s = memchr(s, c, len); s && s + patt_len < end; ++s, s = memchr(s, c, end - s))
+		if(memcmp(s + 1, patt, patt_len) == 0)
+			return s;
+
+	return NULL;
+}
+#endif	// ifndef _GNU_SOURCE
+
+bool str_partition(const str src, const str patt, str* const prefix, str* const suffix)
+{
+	const size_t patt_len = str_len(patt);
+
+	if(patt_len > 0 && !str_is_empty(src))
+	{
+		const char* s = memmem(str_ptr(src), str_len(src), str_ptr(patt), patt_len);
+
+		if(s)
+		{
+			if(prefix)
+				str_assign(prefix, str_ref_chars(str_ptr(src), s - str_ptr(src)));
+
+			if(suffix)
+			{
+				s += patt_len;
+				str_assign(suffix, str_ref_chars(s, str_end(src) - s));
+			}
+
+			return true;
+		}
+	}
+
+	if(prefix)
+		str_assign(prefix, str_ref(src));
+
+	if(suffix)
+		str_clear(suffix);
+
+	return false;
+}
+
+// comparison functions
 int str_order_asc(const void* const s1, const void* const s2)
 {
 	return str_cmp(*(const str*)s1, *(const str*)s2);

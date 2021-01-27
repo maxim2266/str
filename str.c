@@ -93,6 +93,9 @@ void str_swap(str* const s1, str* const s2)
 	*s2 = tmp;
 }
 
+// empty string
+const char* const _empty_string = "";
+
 // string comparison ---------------------------------------------------------------------
 // compare two strings lexicographically
 int str_cmp(const str s1, const str s2)

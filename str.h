@@ -60,7 +60,12 @@ size_t str_len(const str s) { return s.info >> 1; }
 
 // pointer to the string
 static inline
-const char* str_ptr(const str s) { return s.ptr ? s.ptr : ""; }
+const char* str_ptr(const str s)
+{
+	extern const char* const _empty_string;
+
+	return s.ptr ? s.ptr : _empty_string;
+}
 
 // end of the string
 static inline

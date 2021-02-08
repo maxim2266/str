@@ -47,7 +47,7 @@ typedef struct
 } str;
 
 // NULL string
-#define str_null ((str){ 0 })
+#define str_null ((str){ 0, 0 })
 
 // helper macros
 #define _ref_info(n)	((n) << 1)

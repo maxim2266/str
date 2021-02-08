@@ -30,14 +30,11 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#define _GNU_SOURCE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
 #include <wctype.h>
-#include <error.h>
 #include <errno.h>
 #include <stdbool.h>
 
@@ -51,7 +48,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 // i/o helpers
-#define die(msg, ...)	error(1, errno, "" msg, ##__VA_ARGS__)
+static __attribute((noinline, noreturn))
+void die(const char* const msg)
+{
+	perror(msg);
+	exit(1);
+}
 
 #define do_printf(fmt, ...)	\
 	do {	\
@@ -73,8 +75,8 @@ static __attribute__((noreturn))
 void usage_exit(void)
 {
 	static const char usage[] =
-		"Usage: %s SELECTOR\n"
-		"  Generates a character classification function that does the same as its\n"
+		"Usage: gen-char-class SELECTOR\n"
+		"  Generate a character classification C function that does the same as its\n"
 		"  isw*() counterpart under the current locale as specified by LC_ALL\n"
 		"  environment variable. SELECTOR specifies the classification function\n"
 		"  to generate, it must be any one of:\n"
@@ -91,7 +93,7 @@ void usage_exit(void)
 		"    --upper  -> use iswupper()\n"
 		"    --xdigit -> use iswxdigit()\n";
 
-	fprintf(stderr, usage, program_invocation_short_name);
+	fputs(usage, stderr);
 	exit(1);
 }
 
@@ -132,7 +134,8 @@ void read_opts(int argc, char* const argv[])
 	if(strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
 		usage_exit();
 
-	error(1, 0, "unknown option: \"%s\"", argv[1]);
+	fprintf(stderr, "unknown option: \"%s\"\n", argv[1]);
+	exit(1);
 }
 
 #undef ARG
@@ -174,7 +177,7 @@ int main(int argc, char* const argv[])
 	loc = getenv("LC_ALL");
 
 	if(loc && !setlocale(LC_ALL, loc))
-		die("cannot change current locale to \"%s\"", loc);
+		die("cannot change current locale");
 
 	errno = 0;
 	do_printf(header, loc ? loc : "", fn_name);

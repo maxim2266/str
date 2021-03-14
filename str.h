@@ -185,14 +185,14 @@ int _str_join_range_to_stream(FILE* const stream, const str sep, const str* src,
 static inline
 str _str_ref(const str s) { return (str){ s.ptr, s.info & ~(size_t)1 }; }
 
-str _str_ref_form_ptr(const char* const s);
+str _str_ref_from_ptr(const char* const s);
 
 // string reference from anything
 #define str_ref(s)	\
 	_Generic((s),	\
 		str:			_str_ref,	\
-		char*:			_str_ref_form_ptr,	\
-		const char*:	_str_ref_form_ptr	\
+		char*:			_str_ref_from_ptr,	\
+		const char*:	_str_ref_from_ptr	\
 	)(s)
 
 // create a reference to the given range of chars

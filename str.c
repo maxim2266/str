@@ -150,7 +150,7 @@ str str_ref_chars(const char* const s, const size_t n)
 	return (s && n > 0) ? ((str){ s, _ref_info(n) }) : str_null;
 }
 
-str _str_ref_form_ptr(const char* const s)
+str _str_ref_from_ptr(const char* const s)
 {
 	return s ? str_ref_chars(s, strlen(s)) : str_null;
 }

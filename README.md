@@ -49,6 +49,8 @@ int err = str_join(stream, str_lit(", "),
 if(err != 0) { /* handle the error */ }
 ```
 
+[Discussion](https://news.ycombinator.com/item?id=25212864) on Hacker News.
+
 ## User Guide
 
 _**Disclaimer:** This is the good old C language, not C++ or Rust, so nothing can be enforced

@@ -204,8 +204,9 @@ int get_file_size(const int fd, off_t* const size)
 	// stat the file
 	struct stat info;
 
-	if(fstat(fd, &info) == -1)
-		return errno;
+	while(fstat(fd, &info) == -1)
+		if(errno != EINTR)
+			return errno;
 
 	*size = info.st_size;
 
@@ -227,12 +228,14 @@ int read_from_fd(const int fd, void* p, off_t* const psize)
 	const void* const end = p + *psize;
 	ssize_t n;
 
-	if((n = read(fd, p, end - p)) < 0)
-		return errno;
+	do
+	{
+		while((n = read(fd, p, end - p)) < 0)
+			if(errno != EINTR)
+				return errno;
 
-	for(p += n; n > 0 && p < end; p += n)
-		if((n = read(fd, p, end - p)) < 0)
-			return errno;
+		p += n;
+	} while(n > 0 && p < end);
 
 	*psize -= end - p;
 	return 0;
@@ -274,7 +277,9 @@ int str_from_fd(const int fd, const off_t size, str* const dest)
 
 int str_from_file(str* const dest, const char* const file_name)
 {
-	const int fd = open(file_name, O_CLOEXEC | O_RDONLY);
+	int fd;
+
+	do { fd = open(file_name, O_CLOEXEC | O_RDONLY); } while(fd < 0 && errno == EINTR);
 
 	if(fd < 0)
 		return errno;
@@ -352,7 +357,12 @@ int _str_cpy_to_fd(const int fd, const str s)
 		const ssize_t m = write(fd, p, n);
 
 		if(m < 0)
+		{
+			if(errno == EINTR)
+				continue;
+
 			return errno;
+		}
 
 		n -= m;
 		p += m;
@@ -378,7 +388,12 @@ int write_iovec(const int fd, struct iovec* pv, unsigned nv)
 		ssize_t n = writev(fd, pv, nv);
 
 		if(n < 0)
+		{
+			if(errno == EINTR)
+				continue;
+
 			return errno;
+		}
 
 		// discard items already written
 		for(; nv > 0; ++pv, --nv)

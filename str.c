@@ -84,6 +84,9 @@ void str_free(const str s)
 	___p;	\
 })
 
+// errno checker
+#define CHECK_ERRNO()	do { const int __err = errno; if(__err != EINTR) return __err; } while(0)
+
 // swap
 void str_swap(str* const s1, str* const s2)
 {
@@ -205,8 +208,7 @@ int get_file_size(const int fd, off_t* const size)
 	struct stat info;
 
 	while(fstat(fd, &info) == -1)
-		if(errno != EINTR)
-			return errno;
+		CHECK_ERRNO();
 
 	*size = info.st_size;
 
@@ -231,8 +233,7 @@ int read_from_fd(const int fd, void* p, off_t* const psize)
 	do
 	{
 		while((n = read(fd, p, end - p)) < 0)
-			if(errno != EINTR)
-				return errno;
+			CHECK_ERRNO();
 
 		p += n;
 	} while(n > 0 && p < end);
@@ -279,10 +280,8 @@ int str_from_file(str* const dest, const char* const file_name)
 {
 	int fd;
 
-	do { fd = open(file_name, O_CLOEXEC | O_RDONLY); } while(fd < 0 && errno == EINTR);
-
-	if(fd < 0)
-		return errno;
+	while((fd = open(file_name, O_CLOEXEC | O_RDONLY)) < 0)
+		CHECK_ERRNO();
 
 	off_t size = 0;
 	int err = get_file_size(fd, &size);
@@ -354,15 +353,10 @@ int _str_cpy_to_fd(const int fd, const str s)
 
 	while(n > 0)
 	{
-		const ssize_t m = write(fd, p, n);
+		ssize_t m;
 
-		if(m < 0)
-		{
-			if(errno == EINTR)
-				continue;
-
-			return errno;
-		}
+		while((m = write(fd, p, n)) < 0)
+			CHECK_ERRNO();
 
 		n -= m;
 		p += m;
@@ -385,15 +379,10 @@ int write_iovec(const int fd, struct iovec* pv, unsigned nv)
 {
 	while(nv > 0)
 	{
-		ssize_t n = writev(fd, pv, nv);
+		ssize_t n;
 
-		if(n < 0)
-		{
-			if(errno == EINTR)
-				continue;
-
-			return errno;
-		}
+		while((n = writev(fd, pv, nv)) < 0)
+			CHECK_ERRNO();
 
 		// discard items already written
 		for(; nv > 0; ++pv, --nv)

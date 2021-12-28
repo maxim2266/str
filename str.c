@@ -85,7 +85,8 @@ void str_free(const str s)
 })
 
 // errno checker
-#define CHECK_ERRNO()	do { const int __err = errno; if(__err != EINTR) return __err; } while(0)
+#define EINTR_RETRY(expr)	\
+	while((expr) < 0) do { const int __err = errno; if(__err != EINTR) return __err; } while(0)
 
 // swap
 void str_swap(str* const s1, str* const s2)
@@ -207,8 +208,7 @@ int get_file_size(const int fd, off_t* const size)
 	// stat the file
 	struct stat info;
 
-	while(fstat(fd, &info) == -1)
-		CHECK_ERRNO();
+	EINTR_RETRY(fstat(fd, &info));
 
 	*size = info.st_size;
 
@@ -232,8 +232,7 @@ int read_from_fd(const int fd, void* p, off_t* const psize)
 
 	do
 	{
-		while((n = read(fd, p, end - p)) < 0)
-			CHECK_ERRNO();
+		EINTR_RETRY(n = read(fd, p, end - p));
 
 		p += n;
 	} while(n > 0 && p < end);
@@ -280,8 +279,7 @@ int str_from_file(str* const dest, const char* const file_name)
 {
 	int fd;
 
-	while((fd = open(file_name, O_CLOEXEC | O_RDONLY)) < 0)
-		CHECK_ERRNO();
+	EINTR_RETRY(fd = open(file_name, O_CLOEXEC | O_RDONLY));
 
 	off_t size = 0;
 	int err = get_file_size(fd, &size);
@@ -355,8 +353,7 @@ int _str_cpy_to_fd(const int fd, const str s)
 	{
 		ssize_t m;
 
-		while((m = write(fd, p, n)) < 0)
-			CHECK_ERRNO();
+		EINTR_RETRY(m = write(fd, p, n));
 
 		n -= m;
 		p += m;
@@ -381,8 +378,7 @@ int write_iovec(const int fd, struct iovec* pv, unsigned nv)
 	{
 		ssize_t n;
 
-		while((n = writev(fd, pv, nv)) < 0)
-			CHECK_ERRNO();
+		EINTR_RETRY(n = writev(fd, pv, nv));
 
 		// discard items already written
 		for(; nv > 0; ++pv, --nv)

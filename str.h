@@ -96,6 +96,10 @@ void str_assign(str* const ps, const str s) { str_free(*ps); *ps = s; }
 static inline
 str str_move(str* const ps) { const str t = *ps; *ps = str_null; return t; }
 
+// pass ownership of the string
+static inline
+str str_pass(str* const ps) { const str t = *ps; ps->info &= ~(size_t)1; return t; }
+
 // swap two string objects
 void str_swap(str* const s1, str* const s2);
 

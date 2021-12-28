@@ -119,6 +119,25 @@ void test_str_move(void)
 }
 
 static
+void test_str_pass(void)
+{
+	str s1 = str_null;
+
+	assert(str_cpy(&s1, str_lit("ZZZ")) == 0);
+
+	str s2 = str_pass(&s1);
+
+	assert(str_is_ref(s1));
+	assert(str_eq(s1, str_lit("ZZZ")));
+
+	assert(str_is_owner(s2));
+	assert(str_eq(s2, str_lit("ZZZ")));
+
+	str_free(s2);
+	passed;
+}
+
+static
 void test_str_ref(void)
 {
 	str s = str_ref("ZZZ");
@@ -856,6 +875,7 @@ int main(void)
 	test_str_dup();
 	test_str_clear();
 	test_str_move();
+	test_str_pass();
 	test_str_ref();
 	test_str_cmp();
 	test_str_cmp_ci();

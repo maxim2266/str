@@ -95,8 +95,10 @@ owning or not, so it can be used everywhere, just to avoid any doubt.
 * There is no automatic memory management in C, so every owning object must be released at
 some point, either directly by using `str_free` function, or indirectly by assignment from
 `str_assign` or a similar function.
-* An owning object can be passed over to another location by using `str_move` function. The
+* An owning object can be moved to another location by using `str_move` function. The
 function resets its source object to an empty string.
+* An owning object can be passed over to another location by using `str_pass` function. The
+function sets its source to a non-owning reference to the original string.
 
 It is technically possible to create a reference to a string that is not
 null-terminated. The library accepts strings without null-terminators, but every new string
@@ -119,7 +121,7 @@ for example:<br>
 Querying a property of a string object (like the length of the string via `str_len`) is a
 cheap operation.
 
-### Assigning and Moving String Objects
+### Assigning, Moving, and Passing String Objects
 
 C language does not allow for operator overloading, so this library provides a function
 `str_assign` that takes a string object and assigns it to the destination object, freeing
@@ -130,6 +132,10 @@ An existing object can be moved over to another location via `str_move` function
 The function resets the source object to `str_null` to guarantee the correct move semantics.
 The value returned by `str_move` may be either used to initialise a new object, or
 assigned to an existing object using `str_assign`.
+
+An existing object can also be passed over to another location via `str_pass` function. The function
+sets the source object to be a non-owning reference to the original string, otherwise the semantics
+and usage is the same as `str_move`.
 
 ### String Composition and Generic Destination
 
@@ -230,6 +236,10 @@ Constructs an owning object from the given C string. The string should be safe t
 `str str_move(str* const ps)`<br>
 Saves the given object to a temporary, resets the source object to `str_null`, and then
 returns the saved object.
+
+`str str_pass(str* const ps)`<br>
+Saves the given object to a temporary, sets the source object to be a non-owning reference to the
+original string, and then returns the saved object.
 
 #### String Modification
 

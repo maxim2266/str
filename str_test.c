@@ -66,7 +66,7 @@ void test_str_lit(void)
 static
 void test_str_cpy(void)
 {
-	str s = str_null;
+	str_auto s = str_null;
 
 	assert(str_cpy(&s, str_lit("ZZZ")) == 0);
 
@@ -76,7 +76,6 @@ void test_str_cpy(void)
 	assert(str_eq(s, str_lit("ZZZ")));
 	assert(*str_end(s) == 0);
 
-	str_free(s);
 	passed;
 }
 
@@ -163,7 +162,7 @@ void test_str_ref(void)
 static
 void test_str_cmp(void)
 {
-	const str s = str_lit("zzz");
+	const str_auto s = str_lit("zzz");
 
 	assert(str_cmp(s, s) == 0);
 	assert(str_cmp(s, str_lit("zzz")) == 0);
@@ -200,13 +199,12 @@ void test_str_cmp_ci(void)
 static
 void test_str_acquire(void)
 {
-	str s = str_acquire(strdup("ZZZ"));
+	str_auto s = str_acquire(strdup("ZZZ"));
 
 	assert(str_is_owner(s));
 	assert(str_eq(s, str_lit("ZZZ")));
 	assert(*str_end(s) == 0);
 
-	str_free(s);
 	passed;
 }
 
@@ -275,7 +273,7 @@ void test_str_join(void)
 static
 void test_composition(void)
 {
-	str s = str_lit(", ");
+	str_auto s = str_lit(", ");
 
 	assert(str_join(&s, s, str_lit("Here"), str_lit("there"), str_lit("and everywhere")) == 0);
 	assert(str_cat(&s, s, str_lit("...")) == 0);
@@ -284,7 +282,6 @@ void test_composition(void)
 	assert(str_is_owner(s));
 	assert(*str_end(s) == 0);
 
-	str_free(s);
 	passed;
 }
 
@@ -680,7 +677,7 @@ void test_unique_range(void)
 static
 void test_from_file(void)
 {
-	str fname = str_null;
+	str_auto fname = str_null;
 
 	assert(str_cat(&fname, str_lit("tmp_"), str_ref_chars(__func__, sizeof(__func__) - 1)) == 0);
 
@@ -690,7 +687,7 @@ void test_from_file(void)
 	assert(str_join(stream, str_lit(" "), str_lit("aaa"), str_lit("bbb"), str_lit("ccc")) == 0);
 	assert(fclose(stream) == 0);
 
-	str res = str_null;
+	str_auto res = str_null;
 
 	assert(str_from_file(&res, str_ptr(fname)) == 0);
 	unlink(str_ptr(fname));
@@ -702,8 +699,6 @@ void test_from_file(void)
 	assert(str_from_file(&res, "/dev/null") == EOPNOTSUPP);
 	assert(str_from_file(&res, "does-not-exist") == ENOENT);
 
-	str_free(res);
-	str_free(fname);
 	passed;
 }
 

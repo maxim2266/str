@@ -68,6 +68,13 @@ void str_free(const str s)
 		str_mem_free((void*)s.ptr);
 }
 
+// version of str_free() for str_auto macro
+void _str_free(const str* const ps)
+{
+	if(ps)
+		str_free(*ps);
+}
+
 // memory allocation helpers
 #define ALLOC(n)	\
 ({	\

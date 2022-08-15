@@ -87,6 +87,11 @@ bool str_is_ref(const str s) { return !str_is_owner(s); }
 // free memory allocated for the string
 void str_free(const str s);
 
+// automatic cleanup
+void _str_free(const str* const ps);
+
+#define str_auto	str __attribute__((cleanup(_str_free)))
+
 // string movements -----------------------------------------------------------------------
 // free target string, then assign the new value to it
 static inline

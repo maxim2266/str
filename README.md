@@ -93,7 +93,9 @@ store or release the object. When in doubt pass such an object via `str_ref`.
 `str_assign` function instead. In fact, this function can assign to any string object,
 owning or not, so it can be used everywhere, just to avoid any doubt.
 * There is no automatic memory management in C, so every owning object must be released at
-some point using either `str_free` or `str_clear` function.
+some point using either `str_free` or `str_clear` function. String objects on the stack
+can also be declared as `str_auto` (or `const str_auto`) for automatic cleanup when the variable
+goes out of scope.
 * An owning object can be moved to another location by using `str_move` function. The
 function resets its source object to an empty string.
 * An owning object can be passed over to another location by using `str_pass` function. The
@@ -152,7 +154,8 @@ of failure (including `ENOMEM` on memory allocation error).
 
 Just to make things more clear, here is the same code as in the example above, but with comments:
 ```C
-// declare a variable and initialise it with an empty string
+// declare a variable and initialise it with an empty string; could also be declared as "str_auto"
+// to avoid explicit call to str_free() below.
 str s = str_null;
 
 // join the given string literals around the separator (second parameter),
@@ -243,8 +246,11 @@ original string, and then returns the saved object.
 #### String Deallocation
 
 `void str_free(const str s)`<br>
-Deallocates any memory held by the owning string object. No-op for references. After this function
-the object is in unknown and unusable state.
+Deallocates any memory held by the owning string object. No-op for references. After a call to
+this function the string object is in unknown and unusable state.
+
+String objects on the stack can also be declared as `str_auto` instead of `str` to deallocate
+any memory held by the string when the variable goes out of scope.
 
 #### String Modification
 

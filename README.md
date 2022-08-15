@@ -93,8 +93,7 @@ store or release the object. When in doubt pass such an object via `str_ref`.
 `str_assign` function instead. In fact, this function can assign to any string object,
 owning or not, so it can be used everywhere, just to avoid any doubt.
 * There is no automatic memory management in C, so every owning object must be released at
-some point, either directly by using `str_free` function, or indirectly by assignment from
-`str_assign` or a similar function.
+some point using either `str_free` or `str_clear` function.
 * An owning object can be moved to another location by using `str_move` function. The
 function resets its source object to an empty string.
 * An owning object can be passed over to another location by using `str_pass` function. The
@@ -240,6 +239,12 @@ returns the saved object.
 `str str_pass(str* const ps)`<br>
 Saves the given object to a temporary, sets the source object to be a non-owning reference to the
 original string, and then returns the saved object.
+
+#### String Deallocation
+
+`void str_free(const str s)`<br>
+Deallocates any memory held by the owning string object. No-op for references. After this function
+the object is in unknown and unusable state.
 
 #### String Modification
 

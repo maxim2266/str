@@ -64,7 +64,7 @@ void test_str_lit(void)
 }
 
 static
-void test_str_dup(void)
+void test_str_cpy(void)
 {
 	str s = str_null;
 
@@ -872,7 +872,7 @@ int main(void)
 {
 	// tests
 	test_str_lit();
-	test_str_dup();
+	test_str_cpy();
 	test_str_clear();
 	test_str_move();
 	test_str_pass();

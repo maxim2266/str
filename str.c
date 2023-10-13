@@ -54,17 +54,11 @@ void* mempcpy(void* dest, const void* src, const size_t n)
 }
 #endif
 
-static inline
-void str_mem_free(void* p)
-{
-	free(p);
-}
-
 // string deallocation
 void str_free(const str s)
 {
 	if(str_is_owner(s))
-		str_mem_free((void*)s.ptr);
+		free((void*)s.ptr);
 }
 
 // version of str_free() for str_auto macro
@@ -79,14 +73,6 @@ void _str_free(const str* const ps)
 ({	\
 	void* const ___p = malloc(n);	\
 	if(!___p) return ENOMEM;	\
-	___p;	\
-})
-
-#define REALLOC(p, n)	\
-({	\
-	void* const ___s = (p);	\
-	void* const ___p = realloc(___s, (n));	\
-	if(!___p) { str_mem_free(___s); return ENOMEM; }	\
 	___p;	\
 })
 
@@ -274,7 +260,17 @@ int str_from_fd(const int fd, const off_t size, str* const dest)
 	}
 
 	if(n < size)
-		buff = REALLOC(buff, n + 1);
+	{
+		char* const p = realloc(buff, n + 1);
+
+		if(!p)
+		{
+			free(buff);
+			return ENOMEM;
+		}
+
+		buff = p;
+	}
 
 	buff[n] = 0;
 	str_assign(dest, str_acquire_chars(buff, n));

@@ -57,8 +57,7 @@ void* mempcpy(void* dest, const void* src, const size_t n)
 static inline
 void str_mem_free(void* p)
 {
-	if(p)
-		free(p);
+	free(p);
 }
 
 // string deallocation

@@ -1,7 +1,7 @@
 /*
 BSD 3-Clause License
 
-Copyright (c) 2020,2021, Maxim Konakov
+Copyright (c) 2020,2021,2022,2023 Maxim Konakov and contributors
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

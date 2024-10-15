@@ -30,8 +30,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#define _DEFAULT_SOURCE	// for strncasecmp()
-#define _XOPEN_SOURCE
+#define _DEFAULT_SOURCE		// for strncasecmp()
+#define _XOPEN_SOURCE 500	// for IOV_MAX
 
 #include "str.h"
 
@@ -45,14 +45,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sys/stat.h>
 #include <fcntl.h>
 
-// compatibility
-#ifndef _GNU_SOURCE
+// append to destination and return the end pointer
 static inline
-void* mempcpy(void* dest, const void* src, const size_t n)
+void* mem_append(void* dest, const void* src, const size_t n)
 {
 	return memcpy(dest, src, n) + n;
 }
-#endif
 
 // string deallocation
 void str_free(const str s)
@@ -298,7 +296,7 @@ int str_from_file(str* const dest, const char* const file_name)
 static inline
 char* append_str(char* p, const str s)
 {
-	return mempcpy(p, str_ptr(s), str_len(s));
+	return mem_append(p, str_ptr(s), str_len(s));
 }
 
 static
@@ -542,11 +540,9 @@ int _str_join_range_to_stream(FILE* const stream, const str sep, const str* src,
 }
 
 // searching and sorting --------------------------------------------------------------------
-// string partitioning
-#ifndef _GNU_SOURCE
 // an implementation of memmem(3) for the str_partition() function below
 static
-const void* memmem(const void* s, const size_t len, const void* patt, size_t patt_len)
+const void* mem_mem(const void* s, const size_t len, const void* patt, size_t patt_len)
 {
 	switch(patt_len)
 	{
@@ -567,15 +563,15 @@ const void* memmem(const void* s, const size_t len, const void* patt, size_t pat
 
 	return NULL;
 }
-#endif	// ifndef _GNU_SOURCE
 
+// string partitioning
 bool str_partition(const str src, const str patt, str* const prefix, str* const suffix)
 {
 	const size_t patt_len = str_len(patt);
 
 	if(patt_len > 0 && !str_is_empty(src))
 	{
-		const char* s = memmem(str_ptr(src), str_len(src), str_ptr(patt), patt_len);
+		const char* s = mem_mem(str_ptr(src), str_len(src), str_ptr(patt), patt_len);
 
 		if(s)
 		{

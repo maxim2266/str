@@ -15,7 +15,7 @@ SRC := str.c str.h str_test.c
 
 # compiler
 CC := gcc
-#CC := clang-11
+# CC := clang
 
 # all
 .PHONY: all

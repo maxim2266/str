@@ -540,30 +540,6 @@ int _str_join_range_to_stream(FILE* const stream, const str sep, const str* src,
 }
 
 // searching and sorting --------------------------------------------------------------------
-// an implementation of memmem(3) for the str_partition() function below
-static
-const void* mem_mem(const void* s, const size_t len, const void* patt, size_t patt_len)
-{
-	switch(patt_len)
-	{
-		case 0:
-			return s;
-		case 1:
-			return memchr(s, *(const unsigned char*)patt, len);
-	}
-
-	const void* const end = s + len;
-	const int c = *(const unsigned char*)patt++;
-
-	--patt_len;
-
-	for(s = memchr(s, c, len); s && s + patt_len < end; ++s, s = memchr(s, c, end - s))
-		if(memcmp(s + 1, patt, patt_len) == 0)
-			return s;
-
-	return NULL;
-}
-
 // string partitioning
 bool str_partition(const str src, const str patt, str* const prefix, str* const suffix)
 {
@@ -571,7 +547,7 @@ bool str_partition(const str src, const str patt, str* const prefix, str* const 
 
 	if(patt_len > 0 && !str_is_empty(src))
 	{
-		const char* s = mem_mem(str_ptr(src), str_len(src), str_ptr(patt), patt_len);
+		const char* s = memmem(str_ptr(src), str_len(src), str_ptr(patt), patt_len);
 
 		if(s)
 		{

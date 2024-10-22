@@ -40,7 +40,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // platform checks
 #ifndef __STDC_ISO_10646__
-#error "this platform does not support UNICODE (\"__STDC_ISO_10646__\" is not defined)"
+#error "this platform does not support UNICODE (__STDC_ISO_10646__ is not defined)"
 #endif
 
 #if __SIZEOF_WCHAR_T__ < 4 || __SIZEOF_WINT_T__ < 4

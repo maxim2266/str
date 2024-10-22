@@ -434,5 +434,6 @@ to see an example of its output.
 
 ## Project Status
 The library requires at least a C11 compiler. So far has been tested on Linux Mint versions
-from 19.3 to 22.0, with `gcc` versions from 9.5.0 to 13.2.0, and `clang` versions up to 18.1.3;
-it is also reported to work on ALT Linux 9.1 for Elbrus, with `lcc` version 1.25.09.
+from 19.3 to 22.0, with `gcc` versions from 9.5.0 to 13.2.0 (with either `libc` or `musl`),
+and `clang` versions up to 18.1.3; it is also reported to work on ALT Linux 9.1 for Elbrus, with
+`lcc` version 1.25.09.

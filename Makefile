@@ -1,21 +1,20 @@
-# Disable built-in rules and variables
-MAKEFLAGS += --no-builtin-rules
-MAKEFLAGS += --no-builtin-variables
-
 # flags
 CC_WARN := -Wall -Wextra -Werror=implicit-function-declaration -Wformat -Werror=format-security
-CC_SAN := -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize-address-use-after-scope
 
-test:      CFLAGS := -ggdb -std=c11 -pipe $(CC_WARN) -fno-omit-frame-pointer $(CC_SAN)
-flto-test: CFLAGS := -s -O2 -pipe -std=c11 $(CC_WARN) -flto -march=native -mtune=native
-tools:     CFLAGS := -s -O2 -pipe -std=c11 $(CC_WARN)
+ifeq ($(CC),musl-gcc)
+# musl is ISO 10646 compliant but doesn't define __STDC_ISO_10646__
+CC_EXTRA := -D__STDC_ISO_10646__=201706L
+else
+# sanitisers only work for non-musl builds
+CC_SAN := -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize-address-use-after-scope
+endif
+
+test:      CFLAGS := -ggdb -std=c11 -pipe $(CC_WARN) $(CC_EXTRA) -fno-omit-frame-pointer $(CC_SAN)
+flto-test: CFLAGS := -s -O2 -pipe -std=c11 $(CC_WARN) $(CC_EXTRA) -flto -march=native -mtune=native
+tools:     CFLAGS := -s -O2 -pipe -std=c11 $(CC_WARN) $(CC_EXTRA)
 
 # str library source files
 SRC := str.c str.h str_test.c
-
-# compiler
-CC := gcc
-# CC := clang
 
 # all
 .PHONY: all

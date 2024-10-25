@@ -13,6 +13,7 @@ with existing libraries, so decided to make the right one, once and forever. ðŸ™
 * Light-weight references to strings: cheap to create, copy, or pass by value;
 * Support for copy and move semantics, although not enforceable by the C language;
 * String composition functions writing to memory, file descriptors, or file streams;
+* Can be compiled using `gcc` or `clang`, and linked with `libc` or `musl`.
 
 ## Installation
 Just clone the project and copy (or symlink) the files `str.h` and `str.c` into your project,
@@ -57,20 +58,20 @@ _**Disclaimer:** This is the good old C language, not C++ or Rust, so nothing ca
 on the language level, and certain discipline is required to make sure there is no corrupt
 or leaked memory resulting from using this library._
 
-A string is represented by the type `str` that maintains a pointer to some memory containing
-the actual string. Objects of type `str` are small enough (a struct of a `const char*` and a `size_t`)
-to be cheap to create, copy (pass by value), and move. The `str` structure should be treated
-as opaque (i.e., do not attempt to directly access or modify the fields in this structure).
-The strings are assumed to be immutable, like those in Java or Go, but only by means of `const char*`
-pointers, so it is actually possible to write to such a string, although the required type
-cast to `char*` offers at least some (mostly psychological) protection from modifying a string
-by mistake.
+A string is represented by the type `str` that maintains a pointer to some memory containing the
+actual string, and the length of the string. Objects of type `str` are small enough (a struct
+of a `const char*` and a `size_t`) to be cheap to create, copy (pass by value), and move. The
+`str` structure should be treated as opaque (i.e., do not attempt to directly access or modify
+the fields in this structure).  The strings are assumed to be immutable, like those in Java or
+Go, but only by means of `const char*` pointers, so it is actually possible to modify such a
+string, although the required type cast to `char*` offers at least some (mostly psychological)
+protection from changing the string by mistake.
 
 This library focusses only on handling strings, not gradually composing them like
 [StringBuffer](https://docs.oracle.com/javase/7/docs/api/java/lang/StringBuffer.html)
 class in Java.
 
-All string objects must be initialised. Uninitialised objects will cause
+All string objects must be initialised before use. Uninitialised objects will cause
 undefined behaviour. Use the provided constructors, or `str_null` for empty strings.
 
 There are two kinds of `str` objects: those actually owning the memory they point to, and
@@ -98,7 +99,7 @@ can also be declared as `str_auto` (or `const str_auto`) for automatic cleanup w
 goes out of scope.
 * An owning object can be moved to another location by using `str_move` function. The
 function resets its source object to an empty string.
-* An owning object can be passed over to another location by using `str_pass` function. The
+* Object ownership can be passed over to another object by using `str_pass` function. The
 function sets its source to a non-owning reference to the original string.
 
 It is technically possible to create a reference to a string that is not
@@ -111,7 +112,7 @@ A string object can be constructed form any C string, string literal, or a range
 The provided constructors are computationally cheap to apply. Depending on the constructor,
 the new object can either own the actual string it refers to, or be a non-owning reference.
 Constructors themselves do not allocate any memory. Importantly, constructors are the only
-functions in this library that return a string object, while others assign their results
+functions in this library that return a string object, while others only assign their results
 through a pointer to a pre-existing string. This makes constructors suitable for initialisation
 of new string objects. In all other situations one should combine construction with assignment,
 for example:<br>
@@ -167,11 +168,11 @@ str_join(&s, str_lit(", "),
          str_lit("there"),
          str_lit("and everywhere"));
 
-// create a new string concatenating "s" and a literal; the function does not modify its
-// destination object "s" before the result is computed, also freeing the destination
+// create a new string concatenating "s" and a literal; the function only modifies its
+// destination object "s" after the result is computed, also freeing the destination
 // before the assignment, so it is safe to use "s" as both a parameter and a destination.
 // note: we pass a copy of the owning object "s" as the second parameter, and here it is
-// safe to do so because this particular function does not store or release its arguments.
+// safe to do so because this particular function does not modify its arguments.
 str_cat(&s, s, str_lit("..."));
 
 // check that we have got the expected result

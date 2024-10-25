@@ -60,7 +60,7 @@ void str_free(const str s)
 }
 
 // version of str_free() for str_auto macro
-void _str_free(const str* const ps)
+void str_free_auto(const str* const ps)
 {
 	if(ps)
 		str_free(*ps);
@@ -88,7 +88,7 @@ void str_swap(str* const s1, str* const s2)
 }
 
 // empty string
-const char* const _empty_string = "";
+const char* const str_empty_string = "";
 
 // string comparison ---------------------------------------------------------------------
 // compare two strings lexicographically
@@ -141,10 +141,10 @@ bool str_has_suffix(const str s, const str suffix)
 // create a reference to the given range of chars
 str str_ref_chars(const char* const s, const size_t n)
 {
-	return (s && n > 0) ? ((str){ s, _ref_info(n) }) : str_null;
+	return (s && n > 0) ? ((str){ s, str_ref_info(n) }) : str_null;
 }
 
-str _str_ref_from_ptr(const char* const s)
+str str_ref_from_ptr(const char* const s)
 {
 	return s ? str_ref_chars(s, strlen(s)) : str_null;
 }
@@ -161,7 +161,7 @@ str str_acquire_chars(const char* const s, const size_t n)
 		return str_null;
 	}
 
-	return (str){ s, _owner_info(n) };
+	return (str){ s, str_owner_info(n) };
 }
 
 // take ownership of the given C string
@@ -171,7 +171,7 @@ str str_acquire(const char* const s)
 }
 
 // allocate a copy of the given string
-int _str_dup(str* const dest, const str s)
+int str_dup_impl(str* const dest, const str s)
 {
 	const size_t n = str_len(s);
 
@@ -311,7 +311,7 @@ size_t total_length(const str* src, size_t count)
 }
 
 // concatenate strings
-int _str_cat_range(str* const dest, const str* src, size_t count)
+int str_cat_range_impl(str* const dest, const str* src, size_t count)
 {
 	if(!src)
 	{
@@ -344,7 +344,7 @@ int _str_cat_range(str* const dest, const str* src, size_t count)
 }
 
 // writing to file descriptor
-int _str_cpy_to_fd(const int fd, const str s)
+int str_cpy_to_fd(const int fd, const str s)
 {
 	size_t n = str_len(s);
 	const void* p = str_ptr(s);
@@ -363,7 +363,7 @@ int _str_cpy_to_fd(const int fd, const str s)
 }
 
 // writing to byte stream
-int _str_cpy_to_stream(FILE* const stream, const str s)
+int str_cpy_to_stream(FILE* const stream, const str s)
 {
 	const size_t n = str_len(s);
 
@@ -412,7 +412,7 @@ struct iovec* vec_append_nonempty(struct iovec* const pv, const str s)
 	return str_is_empty(s) ? pv : vec_append(pv, s);
 }
 
-int _str_cat_range_to_fd(const int fd, const str* src, size_t count)
+int str_cat_range_to_fd(const int fd, const str* src, size_t count)
 {
 	if(!src)
 		return 0;
@@ -440,7 +440,7 @@ int _str_cat_range_to_fd(const int fd, const str* src, size_t count)
 	return 0;
 }
 
-int _str_cat_range_to_stream(FILE* const stream, const str* src, size_t count)
+int str_cat_range_to_stream(FILE* const stream, const str* src, size_t count)
 {
 	if(!src)
 		return 0;
@@ -454,7 +454,7 @@ int _str_cat_range_to_stream(FILE* const stream, const str* src, size_t count)
 }
 
 // join strings
-int _str_join_range(str* const dest, const str sep, const str* src, size_t count)
+int str_join_range_impl(str* const dest, const str sep, const str* src, size_t count)
 {
 	// test for simple cases
 	if(str_is_empty(sep))
@@ -487,7 +487,7 @@ int _str_join_range(str* const dest, const str sep, const str* src, size_t count
 	return 0;
 }
 
-int _str_join_range_to_fd(const int fd, const str sep, const str* src, size_t count)
+int str_join_range_to_fd(const int fd, const str sep, const str* src, size_t count)
 {
 	if(str_is_empty(sep))
 		return str_cat_range(fd, src, count);
@@ -523,7 +523,7 @@ int _str_join_range_to_fd(const int fd, const str sep, const str* src, size_t co
 	return 0;
 }
 
-int _str_join_range_to_stream(FILE* const stream, const str sep, const str* src, size_t count)
+int str_join_range_to_stream(FILE* const stream, const str sep, const str* src, size_t count)
 {
 	if(str_is_empty(sep))
 		return str_cat_range(stream, src, count);
@@ -656,7 +656,7 @@ size_t str_unique_range(str* const array, const size_t count)
 // string iterator function
 #ifdef __STDC_UTF_32__
 
-char32_t _cp_iterator_next(_cp_iterator* const it)
+char32_t str_cp_iterator_next(str_cp_iterator* const it)
 {
 	if(it->curr >= it->end)
 		return CPI_END_OF_STRING;

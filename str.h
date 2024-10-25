@@ -50,8 +50,8 @@ typedef struct
 #define str_null ((str){ 0, 0 })
 
 // helper macros
-#define _ref_info(n)	((n) << 1)
-#define _owner_info(n)	(_ref_info(n) | 1)
+#define str_ref_info(n)	((n) << 1)
+#define str_owner_info(n)	(str_ref_info(n) | 1)
 
 // string properties ----------------------------------------------------------------------
 // length of the string
@@ -62,9 +62,9 @@ size_t str_len(const str s) { return s.info >> 1; }
 static inline
 const char* str_ptr(const str s)
 {
-	extern const char* const _empty_string;
+	extern const char* const str_empty_string;
 
-	return s.ptr ? s.ptr : _empty_string;
+	return s.ptr ? s.ptr : str_empty_string;
 }
 
 // end of the string
@@ -88,9 +88,9 @@ bool str_is_ref(const str s) { return !str_is_owner(s); }
 void str_free(const str s);
 
 // automatic cleanup
-void _str_free(const str* const ps);
+void str_free_auto(const str* const ps);
 
-#define str_auto	str __attribute__((cleanup(_str_free)))
+#define str_auto	str __attribute__((cleanup(str_free_auto)))
 
 // string movements -----------------------------------------------------------------------
 // free target string, then assign the new value to it
@@ -135,29 +135,29 @@ bool str_has_suffix(const str s, const str suffix);
 
 // string composition ------------------------------------------------------------------
 // implementation helpers
-int _str_dup(str* const dest, const str s);
-int _str_cpy_to_fd(const int fd, const str s);
-int _str_cpy_to_stream(FILE* const stream, const str s);
+int str_dup_impl(str* const dest, const str s);
+int str_cpy_to_fd(const int fd, const str s);
+int str_cpy_to_stream(FILE* const stream, const str s);
 
 // copy string
 #define str_cpy(dest, src)	\
 	_Generic((dest),	\
-		str*:	_str_dup,	\
-		int:	_str_cpy_to_fd,	\
-		FILE*:	_str_cpy_to_stream	\
+		str*:	str_dup_impl,	\
+		int:	str_cpy_to_fd,	\
+		FILE*:	str_cpy_to_stream	\
 	)((dest), (src))
 
 // implementation helpers
-int _str_cat_range(str* const dest, const str* src, size_t count);
-int _str_cat_range_to_fd(const int fd, const str* src, size_t count);
-int _str_cat_range_to_stream(FILE* const stream, const str* src, size_t count);
+int str_cat_range_impl(str* const dest, const str* src, size_t count);
+int str_cat_range_to_fd(const int fd, const str* src, size_t count);
+int str_cat_range_to_stream(FILE* const stream, const str* src, size_t count);
 
 // concatenate range of strings
 #define str_cat_range(dest, src, count)	\
 	_Generic((dest),	\
-		str*:	_str_cat_range,	\
-		int:	_str_cat_range_to_fd,	\
-		FILE*:	_str_cat_range_to_stream	\
+		str*:	str_cat_range_impl,	\
+		int:	str_cat_range_to_fd,	\
+		FILE*:	str_cat_range_to_stream	\
 	)((dest), (src), (count))
 
 // concatenate string arguments
@@ -168,16 +168,16 @@ int _str_cat_range_to_stream(FILE* const stream, const str* src, size_t count);
 })
 
 // implementation helpers
-int _str_join_range(str* const dest, const str sep, const str* src, size_t count);
-int _str_join_range_to_fd(const int fd, const str sep, const str* src, size_t count);
-int _str_join_range_to_stream(FILE* const stream, const str sep, const str* src, size_t count);
+int str_join_range_impl(str* const dest, const str sep, const str* src, size_t count);
+int str_join_range_to_fd(const int fd, const str sep, const str* src, size_t count);
+int str_join_range_to_stream(FILE* const stream, const str sep, const str* src, size_t count);
 
 // join strings around the separator
 #define str_join_range(dest, sep, src, count)	\
 	_Generic((dest),	\
-		str*:	_str_join_range,	\
-		int:	_str_join_range_to_fd,	\
-		FILE*:	_str_join_range_to_stream	\
+		str*:	str_join_range_impl,	\
+		int:	str_join_range_to_fd,	\
+		FILE*:	str_join_range_to_stream	\
 	)((dest), (sep), (src), (count))
 
 // join string arguments around the separator
@@ -189,19 +189,19 @@ int _str_join_range_to_stream(FILE* const stream, const str sep, const str* src,
 
 // constructors ----------------------------------------------------------------------------
 // string reference from a string literal
-#define str_lit(s)	((str){ "" s, _ref_info(sizeof(s) - 1) })
+#define str_lit(s)	((str){ "" s, str_ref_info(sizeof(s) - 1) })
 
 static inline
-str _str_ref(const str s) { return (str){ s.ptr, s.info & ~(size_t)1 }; }
+str str_ref_impl(const str s) { return (str){ s.ptr, s.info & ~(size_t)1 }; }
 
-str _str_ref_from_ptr(const char* const s);
+str str_ref_from_ptr(const char* const s);
 
 // string reference from anything
 #define str_ref(s)	\
 	_Generic((s),	\
-		str:			_str_ref,	\
-		char*:			_str_ref_from_ptr,	\
-		const char*:	_str_ref_from_ptr	\
+		str:			str_ref_impl,	\
+		char*:			str_ref_from_ptr,	\
+		const char*:	str_ref_from_ptr	\
 	)(s)
 
 // create a reference to the given range of chars
@@ -246,7 +246,7 @@ size_t str_unique_range(str* const array, const size_t count);
 
 // iterator
 #define for_each_codepoint(var, src)	\
-	_for_each_cp((var), (src), _CAT(__it_, __COUNTER__))
+	for_each_cp((var), (src), CAT1(inner_it_, __COUNTER__))
 
 // iterator error codes
 #define CPI_END_OF_STRING			((char32_t)-1)
@@ -254,26 +254,26 @@ size_t str_unique_range(str* const array, const size_t count);
 #define CPI_ERR_INVALID_ENCODING	((char32_t)-3)
 
 // implementation
-#define _for_each_cp(var, src, it)	\
-	for(_cp_iterator it = _make_cp_iterator(src); (var = _cp_iterator_next(&it)) <= 0x10FFFFu;)
+#define for_each_cp(var, src, it)	\
+	for(str_cp_iterator it = str_make_cp_iterator(src); (var = str_cp_iterator_next(&it)) <= 0x10FFFFu;)
 
-#define _CAT(x, y)	__CAT(x, y)
-#define __CAT(x, y)	x ## y
+#define CAT1(x, y)	CAT2(x, y)
+#define CAT2(x, y)	x ## y
 
 typedef struct
 {
 	const char* curr;
 	const char* const end;
 	mbstate_t state;
-} _cp_iterator;
+} str_cp_iterator;
 
 static inline
-_cp_iterator _make_cp_iterator(const str s)
+str_cp_iterator str_make_cp_iterator(const str s)
 {
-	return (_cp_iterator){ .curr = str_ptr(s), .end = str_end(s) };
+	return (str_cp_iterator){ .curr = str_ptr(s), .end = str_end(s) };
 }
 
-char32_t _cp_iterator_next(_cp_iterator* const it);
+char32_t str_cp_iterator_next(str_cp_iterator* const it);
 
 #endif	// ifdef __STDC_UTF_32__
 

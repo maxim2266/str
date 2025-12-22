@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,45 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "str_impl.h"
+
+size_t str_replace_chars(str* const dest, const str charset, const str repl) {
+	// charset
+	if(str_is_empty(*dest) || str_is_empty(charset))
+		return 0;	// nothing to do
+
+	// bitset
+	uint8_t bitset[BITSET_BUFF_SIZE];
+
+	bitset_init(bitset, charset);
+
+	// replacement
+	size_t nrep = 0;
+	str_builder sb;
+
+	sb_init(&sb);
+
+	const char* const end = str_end(*dest);
+	const char* s = str_ptr(*dest);
+
+	for(const char* p = bitset_search(bitset, s, end);
+		p < end;
+		p = bitset_search(bitset, s, end)
+	) {
+		sb_append_mem(&sb, s, p - s);
+		sb_append(&sb, repl);
+
+		++nrep;
+
+		s = p + 1;
+	}
+
+	sb_append_mem(&sb, s, end - s);
+
+	if(nrep > 0)
+		assign_sb(dest, &sb);
+
+	return nrep;
+}

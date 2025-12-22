@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,22 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "str_impl.h"
+
+size_t str_count_codepoints(const str s) {
+	size_t count = 0;
+	const char* p = str_ptr(s);
+	const char* const end = str_end(s);
+	str_decode_result r = str_decode_utf8(p, end - p);
+
+	while(r.num_bytes > 0) {
+		++count;
+
+		p += r.num_bytes;
+		r = str_decode_utf8(p, end - p);
+	}
+
+	return count;
+}

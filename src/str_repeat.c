@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,24 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "str_impl.h"
+
+void str_repeat(str* const dest, const str s, size_t n) {
+	const size_t len = str_len(s);
+
+	if(len == 0 || n == 0) {
+		str_assign(dest, STR_NULL);
+		return;
+	}
+
+	char* const buff = mem_alloc(len * n + 1);
+	char* p = mem_append(buff, s.ptr, len);
+
+	for(--n; n > 0; --n)
+		p = mem_append(p, s.ptr, len);
+
+	*p = 0;
+	str_assign(dest, str_acquire_mem(buff, p - buff));
+}

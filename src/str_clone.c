@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,15 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "str_impl.h"
+
+// alocate and assign a copy of the given string
+void str_clone(str* const dest, const str s) {
+	const size_t n = str_len(s);
+
+	return (n > 0)
+		 ? str_assign(dest, str_acquire_mem(mem_alloc_copy(s.ptr, n), n))
+		 : str_clear(dest);
+}

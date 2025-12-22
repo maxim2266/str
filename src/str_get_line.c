@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,39 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#define _POSIX_C_SOURCE	200809L
+
+#include "str_impl.h"
+
+#include <errno.h>
+
+int str_get_line(str* const dest, FILE* const stream, const int delim) {
+	char* line = NULL;
+	size_t size = 0;
+	const ssize_t n = getdelim(&line, &size, delim, stream);
+
+	if(n >= 0) {
+		str_assign(dest, str_acquire_mem(mem_realloc(line, n + 1), n));
+		return 0;
+	}
+
+	free(line);
+
+	if(!ferror(stream))
+		return -1; // EOF
+
+	// check errno from getdelim
+	switch(errno) {
+	case ENOMEM:
+		mem_failure();
+	case EINVAL:
+		fclose(stream);
+		return EINVAL;
+	default:
+		// close and return their errno
+		fclose(stream);
+		return errno;
+	}
+}

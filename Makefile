@@ -1,51 +1,86 @@
 # flags
-CC_WARN := -Wall -Wextra -Werror=implicit-function-declaration -Wformat -Werror=format-security
+_CFLAGS := -O2 -std=c11 -pipe \
+           -Wall -Wextra -Wformat    \
+           -Werror=implicit-function-declaration -Werror=int-conversion
 
-ifeq ($(CC),musl-gcc)
-# musl is ISO 10646 compliant but doesn't define __STDC_ISO_10646__
-CC_EXTRA := -D__STDC_ISO_10646__=201706L
-else
+override CFLAGS := $(_CFLAGS) $(CFLAGS)
+
+# files
+SRC :=	src/str_mem.c \
+	src/str_clone.c \
+	src/str_hash.c \
+	src/str_concat_array.c \
+	src/str_join_array.c \
+	src/str_span_chars.c \
+	src/str_span_nonmatching_chars.c \
+	src/str_span_until_substring.c \
+	src/str_sprintf.c \
+	src/str_repeat.c \
+	src/str_replace_substring.c \
+	src/str_replace_chars.c \
+	src/str_replace_char_spans.c \
+	src/str_decode_utf8.c \
+	src/str_count_codepoints.c \
+	src/str_to_valid_utf8.c \
+	src/str_encode_codepoint.c \
+	src/str_concat_array_to_stream.c \
+	src/str_read_all_file.c \
+	src/str_concat_array_to_fd.c \
+	src/str_get_line.c \
+	src/str_sort.c \
+	src/str_partition_array.c \
+	src/str_unique_partition_array.c
+
+OBJ := $(SRC:.c=.o)
+LIB := libstr.a
+
+# targets
+.PHONY: lib clean test stat
+
+# clear targets on error
+.DELETE_ON_ERROR:
+
+# library target
+lib: $(LIB)
+
+# library
+$(LIB): $(OBJ)
+	$(AR) $(ARFLAGS) $@ $?
+
+# header dependencies
+$(OBJ): str.h src/str_impl.h
+
+# testing
+TBIN := test-str
+TSRC := src/test.c \
+	src/test_utf8.c \
+	src/test_utf8_validator.c \
+	src/test_io.c \
+	src/mite/mite.c \
+	$(LIB)
+
 # sanitisers only work for non-musl builds
-CC_SAN := -fsanitize=address -fsanitize=leak -fsanitize=undefined -fsanitize-address-use-after-scope
+ifneq ($(CC),musl-gcc)
+CC_SAN := -fsanitize=address \
+	  -fsanitize=leak  \
+	  -fsanitize=null \
+	  -fsanitize=undefined \
+	  -fsanitize-address-use-after-scope
 endif
 
-test:      CFLAGS := -ggdb -std=c11 -pipe $(CC_WARN) $(CC_EXTRA) -fno-omit-frame-pointer $(CC_SAN)
-flto-test: CFLAGS := -s -O2 -pipe -std=c11 $(CC_WARN) $(CC_EXTRA) -flto -march=native -mtune=native
-tools:     CFLAGS := -s -O2 -pipe -std=c11 $(CC_WARN) $(CC_EXTRA)
+test: $(TBIN)
 
-# str library source files
-SRC := str.c str.h str_test.c
-
-# all
-.PHONY: all
-all: tools test flto-test
-
-.PHONY: clean
-clean: clean-test clean-tools
-
-# test
-test: $(SRC)
-	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
+$(TBIN): $(TSRC) str.h src/mite/mite.h
+	$(CC) $(CFLAGS) $(LDFLAGS) $(CC_SAN) -o $@ $(TSRC)
+	chmod 0700 $@
 	./$@
 
-flto-test: $(SRC)
-	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
-	./$@
+# cleanup
+clean:
+	$(RM) $(LIB) src/*.o $(TBIN)
 
-.PHONY: clean-test
-clean-test:
-	rm -f test flto-test
-
-# tools
-GEN_CHAR_CLASS := tools/gen-char-class
-
-.PHONY: tools
-tools: $(GEN_CHAR_CLASS)
-
-# gen-char-class
-$(GEN_CHAR_CLASS): tools/gen_char_class.c
-	$(CC) $(CFLAGS) -o $@ $(filter %.c,$^)
-
-.PHONY: clean-tools
-clean-tools:
-	rm -f $(GEN_CHAR_CLASS)
+# statistics
+stat:
+	@echo SRC = $(SRC)
+	@echo LIB = $(LIB)
+	@nm $(LIB)

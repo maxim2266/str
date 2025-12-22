@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,22 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#define _GNU_SOURCE
+
+#include "str_impl.h"
+
+size_t str_span_until_substring(const str s, const str substr) {
+	size_t n = str_len(s);
+
+	if(n > 0) {
+		const char* const src = str_ptr(s);
+		const char* const p = memmem(src, n, str_ptr(substr), str_len(substr));
+
+		if(p)
+			n = p - src;
+	}
+
+	return n;
+}

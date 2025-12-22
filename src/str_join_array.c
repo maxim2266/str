@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,36 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "str_impl.h"
+
+// join array of strings around a separator
+void str_join_array(str* const dest, const str sep, const str* src, size_t count) {
+	// simple cases
+	if(str_is_empty(sep)) {
+		str_concat_array(dest, src, count);
+		return;
+	}
+
+	if(!src || count == 0) {
+		str_clear(dest);
+		return;
+	}
+
+	if(count == 1) {
+		str_clone(dest, *src);
+		return;
+	}
+
+	// full join
+	const size_t n = calc_total_length(src, count) + str_len(sep) * (count - 1);
+	char* const buff = mem_alloc(n + 1);
+	char* p = append_str(buff, *src++);
+
+	while(p < buff + n)
+		p = append_str(append_str(p, sep), *src++);
+
+	*p = 0;
+	str_assign(dest, str_acquire_mem(buff, n));
+}

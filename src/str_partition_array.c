@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,25 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "str_impl.h"
+
+size_t str_partition_array(bool (*pred)(const str), str* const array, const size_t count) {
+	if(!array)
+		return 0;
+
+	const str* const end = array + count;
+	str* p = array;
+
+	while(p < end && pred(*p))
+		++p;
+
+	str* s = p;
+
+	while(++p < end)
+		if(pred(*p))
+			str_swap(s++, p);
+
+	return s - array;
+}

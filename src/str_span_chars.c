@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,21 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "str_impl.h"
+
+size_t str_span_chars(const str s, const str charset) {
+	// https://man7.org/linux/man-pages/man3/strspn.3.html
+	// https://git.musl-libc.org/cgit/musl/tree/src/string/strspn.c
+	if(str_is_empty(s) || str_is_empty(charset))
+		return 0;
+
+	// build bitset
+	uint8_t bitset[BITSET_BUFF_SIZE];
+
+	bitset_init(bitset, charset);
+
+	// search
+	return bitset_span(bitset, s.ptr, str_end(s)) - s.ptr;
+}

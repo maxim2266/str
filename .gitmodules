@@ -1,0 +1,6 @@
+[submodule "src/mite"]
+	path = src/mite
+	url = git@github.com:maxim2266/mite.git
+[submodule "src/rapidhash"]
+	path = src/rapidhash
+	url = git@github.com:Nicoshev/rapidhash.git

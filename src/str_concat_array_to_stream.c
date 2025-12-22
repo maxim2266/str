@@ -1,3 +1,4 @@
+/*
 BSD 3-Clause License
 
 Copyright (c) 2025 Maxim Konakov
@@ -27,3 +28,23 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "str_impl.h"
+
+#include <errno.h>
+
+int str_concat_array_to_stream(FILE* const stream, const str* src, const size_t count) {
+	if(src) {
+		for(const str* p = src; p < src + count; ++p) {
+			const size_t n = str_len(*p);
+
+			if(n > 0 && fwrite(p->ptr, 1, n, stream) < n) {
+				fclose(stream);
+				return errno;
+			}
+		}
+	}
+
+	return 0;
+}

@@ -91,7 +91,7 @@ TEST_CASE(test_read_all_file) {
 	create_file(1);
 
 	// read it back
-	str_auto s = STR_NULL;
+	str_auto s = str_null;
 	int err = str_read_all_file(&s, FILE_NAME);
 
 	TESTF(err == 0, "str_read_all_file: %s", strerror(err));
@@ -127,7 +127,7 @@ TEST_CASE(test_concat_to_fd) {
 	TESTF(err == 0, "str_concat_to_fd: %s", strerror(err));
 	TESTF(close(fd) == 0, "close: %m");
 
-	str_auto s = STR_NULL;
+	str_auto s = str_null;
 
 	err = str_read_all_file(&s, FILE_NAME);
 
@@ -149,9 +149,9 @@ TEST_CASE(test_concat_to_fd) {
 	TESTF(err == 0, "str_concat_array_to_fd: %s", strerror(err));
 	TESTF(close(fd) == 0, "close: %m");
 
-	str_auto exp = STR_NULL;
+	str_auto exp = Lit(FILE_DATA_CHUNK);
 
-	str_repeat(&exp, Lit(FILE_DATA_CHUNK), N);
+	str_repeat(&exp, N);
 
 	err = str_read_all_file(&s, FILE_NAME);
 
@@ -173,7 +173,7 @@ TEST_CASE(test_get_line) {
 	TESTF(stream, "tmpfile: %m");
 
 	// read empty file
-	str_auto s = STR_NULL;
+	str_auto s = str_null;
 	int err;
 
 	TESTF((err = str_get_line(&s, stream, '\n')) == -1, "str_get_line: %s", strerror(err));

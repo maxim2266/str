@@ -32,20 +32,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "str_impl.h"
 
-void str_repeat(str* const dest, const str s, size_t n) {
-	const size_t len = str_len(s);
+void str_repeat(str* const s, size_t n) {
+	const size_t len = str_len(*s);
 
-	if(len == 0 || n == 0) {
-		str_assign(dest, STR_NULL);
+	if(len == 0 || n == 1)
+		return;
+
+	if(n == 0) {
+		str_clear(s);
 		return;
 	}
 
 	char* const buff = mem_alloc(len * n + 1);
-	char* p = mem_append(buff, s.ptr, len);
+	char* p = mem_append(buff, s->ptr, len);
 
 	for(--n; n > 0; --n)
-		p = mem_append(p, s.ptr, len);
+		p = mem_append(p, s->ptr, len);
 
 	*p = 0;
-	str_assign(dest, str_acquire_mem(buff, p - buff));
+	str_assign(s, str_acquire_mem(buff, p - buff));
 }

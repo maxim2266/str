@@ -71,7 +71,7 @@ int str_read_all_file(str* const dest, const char* const file_name) {
 		if(close(fd) < 0)
 			return errno;
 
-		str_assign(dest, STR_NULL);
+		str_clear(dest);
 		return 0;
 	}
 

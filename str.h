@@ -48,10 +48,10 @@ typedef struct {
 	size_t prop;
 } str;
 
-// NULL string
-#define STR_NULL ((str){ 0 })
+// empty string
+#define str_null ((str){ 0 })
 
-// helper macros
+// helper macros (not for general use)
 #define str_ref_prop(n)			((n) << 1)
 #define str_owner_prop(n)		(str_ref_prop(n) | 1)
 #define str_mask_owner(prop)	((prop) & ~(size_t)1)
@@ -96,7 +96,7 @@ void str_free(const str s) {
 static inline
 void str_clear(str* const s) {
 	str_free(*s);
-	*s = STR_NULL;
+	*s = str_null;
 }
 
 // free target string, then assign a new value to it
@@ -122,7 +122,7 @@ str str_ref(const str s) {
 // create a reference to the given range of chars
 static inline
 str str_ref_mem(const char* const s, const size_t n) {
-	return (s && n > 0) ? ((str){ s, str_ref_prop(n) }) : STR_NULL;
+	return (s && n > 0) ? ((str){ s, str_ref_prop(n) }) : str_null;
 }
 
 // create a reference to the given C string
@@ -157,7 +157,7 @@ str str_acquire_mem(const char* const s, const size_t n) {
 		return (str){ s, str_owner_prop(n) };
 
 	free((void*)s);
-	return STR_NULL;
+	return str_null;
 }
 
 // take ownership of the given C string
@@ -231,7 +231,7 @@ void str_join_array(str* const dest, const str sep, const str* src, size_t count
 })
 
 // repeat the given string `n` times
-void str_repeat(str* const dest, const str s, size_t n);
+void str_repeat(str* const s, size_t n);
 
 // search -----------------------------------------------------------------------------------------
 // span the initial part of the string `s` as long as the characters from `s` occur

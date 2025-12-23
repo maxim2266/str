@@ -134,7 +134,7 @@ const test_case tests[] = {
 	{ Lit("\xFE\xFE\xFF\xFF"), Lit(REPL REPL REPL REPL) },	// common invalid bytes
 
 	// empty and minimal
-	{ STR_NULL, STR_NULL },
+	{ str_null, str_null },
 	{ Lit("\x41"), Lit("\x41") },	// just 'A'
 
 	// longer strings with multiple patterns
@@ -188,7 +188,7 @@ const char* str_to_hex(const str src) {
 
 TEST_CASE(test_utf8_validator) {
 	const test_case* const end = tests + sizeof(tests)/sizeof(tests[0]);
-	str_auto s = STR_NULL;
+	str_auto s = str_null;
 
 	for(const test_case* p = tests; p < end; ++p) {
 		str_assign(&s, p->src);
@@ -204,7 +204,7 @@ TEST_CASE(test_utf8_validator) {
 }
 
 TEST_CASE(test_utf8_real_text) {
-	str_auto s = STR_NULL;
+	str_auto s = str_null;
 	const int err = str_read_all_file(&s, "test-data/unicode-test.txt");
 
 	TESTF(err == 0, "str_read_all_file: %s", strerror(err));

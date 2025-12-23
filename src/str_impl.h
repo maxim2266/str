@@ -137,7 +137,7 @@ typedef struct {
 static inline
 void sb_init(str_builder* const self) {
 	self->count = 0;
-	self->buff[0] = STR_NULL;
+	self->buff[0] = str_null;
 }
 
 static inline

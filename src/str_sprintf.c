@@ -53,7 +53,7 @@ bool str_sprintf(str* const dest, const char* const fmt, ...) {
 		return false;
 
 	if(n == 0) {
-		str_assign(dest, STR_NULL);
+		str_clear(dest);
 		return true;
 	}
 

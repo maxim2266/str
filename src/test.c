@@ -51,12 +51,12 @@ TEST_CASE(test_clear) {
 
 	TEST(str_is_empty(s));
 	TEST(str_is_ref(s));
-	TEST(str_eq(s, STR_NULL));
+	TEST(str_eq(s, str_null));
 	TEST(strlen(str_ptr(s)) == str_len(s));
 }
 
 TEST_CASE(test_ref) {
-	str s1 = STR_NULL;
+	str s1 = str_null;
 
 	str_clone(&s1, Lit("ZZZ"));
 
@@ -73,11 +73,11 @@ TEST_CASE(test_ref) {
 TEST_CASE(test_ref_slice) {
 	str s = Lit("abcd");
 
-	TEST(str_eq(str_ref_slice(s, 0, 0), STR_NULL));
-	TEST(str_eq(str_ref_slice(s, 2, 2), STR_NULL));
-	TEST(str_eq(str_ref_slice(s, 100, 100), STR_NULL));
-	TEST(str_eq(str_ref_slice(s, __SIZE_MAX__, __SIZE_MAX__), STR_NULL));
-	TEST(str_eq(str_ref_slice(s, 2, 0), STR_NULL));
+	TEST(str_eq(str_ref_slice(s, 0, 0), str_null));
+	TEST(str_eq(str_ref_slice(s, 2, 2), str_null));
+	TEST(str_eq(str_ref_slice(s, 100, 100), str_null));
+	TEST(str_eq(str_ref_slice(s, __SIZE_MAX__, __SIZE_MAX__), str_null));
+	TEST(str_eq(str_ref_slice(s, 2, 0), str_null));
 
 	TEST(str_eq(str_ref_slice(s, 0, 2), Lit("ab")));
 	TEST(str_eq(str_ref_slice(s, 2, 3), Lit("c")));
@@ -86,7 +86,7 @@ TEST_CASE(test_ref_slice) {
 }
 
 TEST_CASE(test_acquire) {
-	str s1 = STR_NULL;
+	str s1 = str_null;
 
 	str_clone(&s1, Lit("ZZZ"));
 
@@ -101,7 +101,7 @@ TEST_CASE(test_acquire) {
 }
 
 TEST_CASE(test_clone) {
-	str_auto s = STR_NULL;
+	str_auto s = str_null;
 
 	str_clone(&s, Lit("ZZZ"));
 
@@ -143,7 +143,7 @@ TEST_CASE(test_swap) {
 }
 
 TEST_CASE(test_auto) {
-	str_auto s1 = STR_NULL, s2 = STR_NULL;
+	str_auto s1 = str_null, s2 = str_null;
 
 	str_clone(&s1, Lit("XXX"));
 	str_clone(&s2, Lit("ZZZ"));
@@ -157,9 +157,9 @@ bool same_sign(const int v1, const int v2) {
 }
 
 TEST_CASE(test_cmp) {
-	TEST(same_sign(strcmp("", ""), str_cmp(STR_NULL, STR_NULL)));
-	TEST(same_sign(strcmp("xxx", ""), str_cmp(Lit("xxx"), STR_NULL)));
-	TEST(same_sign(strcmp("", "xxx"), str_cmp(STR_NULL, Lit("xxx"))));
+	TEST(same_sign(strcmp("", ""), str_cmp(str_null, str_null)));
+	TEST(same_sign(strcmp("xxx", ""), str_cmp(Lit("xxx"), str_null)));
+	TEST(same_sign(strcmp("", "xxx"), str_cmp(str_null, Lit("xxx"))));
 
 	TEST(same_sign(strcmp("xxx", "xxx"), str_cmp(Lit("xxx"), Lit("xxx"))));
 	TEST(same_sign(strcmp("xxz", "xxz"), str_cmp(Lit("xxz"), Lit("xxz"))));
@@ -171,7 +171,7 @@ TEST_CASE(test_prefix) {
 	const str s = Lit("xxx_yyy_zzz");
 
 	TEST(str_has_prefix(s, Lit("xxx")));
-	TEST(str_has_prefix(s, STR_NULL));
+	TEST(str_has_prefix(s, str_null));
 	TEST(str_has_prefix(s, Lit("xxx_yyy_zzz")));
 
 	TEST(!str_has_prefix(s, Lit("xxx_yyy_zzz_")));
@@ -182,7 +182,7 @@ TEST_CASE(test_suffix) {
 	const str s = Lit("xxx_yyy_zzz");
 
 	TEST(str_has_suffix(s, Lit("zzz")));
-	TEST(str_has_suffix(s, STR_NULL));
+	TEST(str_has_suffix(s, str_null));
 	TEST(str_has_suffix(s, Lit("xxx_yyy_zzz")));
 
 	TEST(!str_has_suffix(s, Lit("_xxx_yyy_zzz")));
@@ -190,7 +190,7 @@ TEST_CASE(test_suffix) {
 }
 
 TEST_CASE(test_concat) {
-	str s = STR_NULL;
+	str s = str_null;
 
 	str_clone(&s, Lit("123"));
 	str_concat(&s, Lit("aaa"), Lit("-"), Lit("bbb"));
@@ -218,7 +218,7 @@ TEST_CASE(test_concat) {
 }
 
 TEST_CASE(test_join) {
-	str s = STR_NULL;
+	str s = str_null;
 
 	str_clone(&s, Lit("123"));
 	str_join(&s, Lit("-"), Lit("aaa"), Lit("bbb"), Lit("ccc"), Lit("ddd"), s);
@@ -242,7 +242,7 @@ TEST_CASE(test_join) {
 	TEST(str_eq(s, Lit("aaa-bbb")));
 	TEST(strlen(str_ptr(s)) == str_len(s));
 
-	str_join(&s, STR_NULL, Lit("aaa"), Lit("bbb"));
+	str_join(&s, str_null, Lit("aaa"), Lit("bbb"));
 
 	TEST(str_eq(s, Lit("aaabbb")));
 	TEST(strlen(str_ptr(s)) == str_len(s));
@@ -279,19 +279,21 @@ TEST_CASE(test_sprintf) {
 }
 
 TEST_CASE(test_repeat) {
-	str_auto s = STR_NULL;
+	str_auto s = Lit("xxx");
 
-	str_repeat(&s, Lit("xxx"), 3);
+	str_repeat(&s, 3);
 
 	TEST(str_eq(s, Lit("xxxxxxxxx")));
 	TEST(strlen(str_ptr(s)) == str_len(s));
 
-	str_repeat(&s, Lit("xxx"), 1);
+	str_assign(&s, Lit("xxx"));
+	str_repeat(&s, 1);
 
 	TEST(str_eq(s, Lit("xxx")));
 	TEST(strlen(str_ptr(s)) == str_len(s));
 
-	str_repeat(&s, STR_NULL, 10);
+	str_assign(&s, str_null);
+	str_repeat(&s, 10);
 
 	TEST(str_is_empty(s));
 	TEST(strlen(str_ptr(s)) == str_len(s));
@@ -313,9 +315,9 @@ TEST_CASE(test_hash) {
 
 TEST_CASE(test_span_chars) {
 	// empty strings
-	TEST(str_span_chars(STR_NULL, STR_NULL) == 0);
-	TEST(str_span_chars(Lit("xxx"), STR_NULL) == 0);
-	TEST(str_span_chars(STR_NULL, Lit("xyz")) == 0);
+	TEST(str_span_chars(str_null, str_null) == 0);
+	TEST(str_span_chars(Lit("xxx"), str_null) == 0);
+	TEST(str_span_chars(str_null, Lit("xyz")) == 0);
 
 	// one byte pattern
 	TEST(str_span_chars(Lit("_"), Lit("_")) == 1);
@@ -335,9 +337,9 @@ TEST_CASE(test_span_chars) {
 
 TEST_CASE(test_span_nonmatching_chars) {
 	// empty strings
-	TEST(str_span_nonmatching_chars(STR_NULL, STR_NULL) == 0);
-	TEST(str_span_nonmatching_chars(Lit("xxx"), STR_NULL) == 3);
-	TEST(str_span_nonmatching_chars(STR_NULL, Lit("xyz")) == 0);
+	TEST(str_span_nonmatching_chars(str_null, str_null) == 0);
+	TEST(str_span_nonmatching_chars(Lit("xxx"), str_null) == 3);
+	TEST(str_span_nonmatching_chars(str_null, Lit("xyz")) == 0);
 
 	// one byte pattern
 	TEST(str_span_nonmatching_chars(Lit("_"), Lit("_")) == 0);
@@ -356,9 +358,9 @@ TEST_CASE(test_span_nonmatching_chars) {
 }
 
 TEST_CASE(test_span_until_str) {
-	TEST(str_span_until_substring(STR_NULL, Lit("xxx")) == 0);
-	TEST(str_span_until_substring(Lit("xxx"), STR_NULL) == 0);
-	TEST(str_span_until_substring(STR_NULL, STR_NULL) == 0);
+	TEST(str_span_until_substring(str_null, Lit("xxx")) == 0);
+	TEST(str_span_until_substring(Lit("xxx"), str_null) == 0);
+	TEST(str_span_until_substring(str_null, str_null) == 0);
 	TEST(str_span_until_substring(Lit("xxx-yyy-zzz"), Lit("xxx")) == 0);
 	TEST(str_span_until_substring(Lit("xxx-yyy-zzz"), Lit("yyy")) == 4);
 	TEST(str_span_until_substring(Lit("xxx-yyy-zzz"), Lit("zzz")) == 8);
@@ -366,23 +368,23 @@ TEST_CASE(test_span_until_str) {
 }
 
 TEST_CASE(test_replace_substring) {
-	str_auto s = STR_NULL;
+	str_auto s = str_null;
 
 	// corner cases
-	TEST(str_replace_substring(&s, STR_NULL, STR_NULL) == 0);
+	TEST(str_replace_substring(&s, str_null, str_null) == 0);
 	TEST(str_is_empty(s));
 
 	s = Lit("xxx");
 
-	TEST(str_replace_substring(&s, STR_NULL, STR_NULL) == 0);
+	TEST(str_replace_substring(&s, str_null, str_null) == 0);
 	TEST(str_eq(s, Lit("xxx")));
 	TEST(str_is_ref(s));
 
-	s = STR_NULL;
+	s = str_null;
 
-	TEST(str_replace_substring(&s, Lit("xxx"), STR_NULL) == 0);
+	TEST(str_replace_substring(&s, Lit("xxx"), str_null) == 0);
 	TEST(str_is_empty(s));
-	TEST(str_replace_substring(&s, STR_NULL, Lit("xxx")) == 0);
+	TEST(str_replace_substring(&s, str_null, Lit("xxx")) == 0);
 	TEST(str_is_empty(s));
 
 	// single replacement
@@ -404,23 +406,24 @@ TEST_CASE(test_replace_substring) {
 	// multiple replacements
 	str_assign(&s, Lit("x_x_x_x_x_x_x_x_x"));
 
-	TEST(str_replace_substring(&s, Lit("_"), STR_NULL) == 8);
+	TEST(str_replace_substring(&s, Lit("_"), str_null) == 8);
 	TEST(str_eq(s, Lit("xxxxxxxxx")));
 
 	// big string
 	const size_t N = 10000;
 
-	str_repeat(&s, Lit("x_"), N);
+	str_assign(&s, Lit("x_"));
+	str_repeat(&s, N);
 
 	TEST(str_replace_substring(&s, Lit("_"), Lit("X")) == N);
 	TEST(str_span_chars(s, Lit("xX")) == 2 * N);
 
-	str_auto s2 = STR_NULL;
+	str_auto s2 = Lit("xX");
 
-	str_repeat(&s2, Lit("xX"), N);
+	str_repeat(&s2, N);
 	TEST(str_eq(s, s2));
 
-	TEST(str_replace_substring(&s2, Lit("xX"), STR_NULL) == N);
+	TEST(str_replace_substring(&s2, Lit("xX"), str_null) == N);
 	TEST(str_is_empty(s2));
 	TEST(str_is_ref(s2));
 
@@ -431,31 +434,31 @@ TEST_CASE(test_replace_substring) {
 }
 
 TEST_CASE(test_replace_chars) {
-	str_auto s = STR_NULL;
+	str_auto s = str_null;
 
 	// corner cases
-	TEST(str_replace_chars(&s, STR_NULL, STR_NULL) == 0);
+	TEST(str_replace_chars(&s, str_null, str_null) == 0);
 	TEST(str_is_empty(s));
 
 	s = Lit("xyz");
 
-	TEST(str_replace_chars(&s, STR_NULL, STR_NULL) == 0);
+	TEST(str_replace_chars(&s, str_null, str_null) == 0);
 	TEST(str_eq(s, Lit("xyz")));
 	TEST(str_is_ref(s));
 
-	s = STR_NULL;
+	s = str_null;
 
-	TEST(str_replace_chars(&s, Lit("xyz"), STR_NULL) == 0);
+	TEST(str_replace_chars(&s, Lit("xyz"), str_null) == 0);
 	TEST(str_is_empty(s));
-	TEST(str_replace_chars(&s, STR_NULL, Lit("xyz")) == 0);
+	TEST(str_replace_chars(&s, str_null, Lit("xyz")) == 0);
 	TEST(str_is_empty(s));
 
 	s = Lit("xyz");
 
-	TEST(str_replace_chars(&s, STR_NULL, Lit("xyz")) == 0);
+	TEST(str_replace_chars(&s, str_null, Lit("xyz")) == 0);
 	TEST(str_eq(s, Lit("xyz")));
 	TEST(str_is_ref(s));
-	TEST(str_replace_chars(&s, Lit("xyz"), STR_NULL) == 3);
+	TEST(str_replace_chars(&s, Lit("xyz"), str_null) == 3);
 	TEST(str_is_empty(s));
 
 	// other replacements
@@ -480,23 +483,26 @@ TEST_CASE(test_replace_chars) {
 	// big string
 	const size_t N = 10000;
 
-	str_repeat(&s, Lit("xX"), N);
+	str_assign(&s, Lit("xX"));
+	str_repeat(&s, N);
 
-	TEST(str_replace_chars(&s, Lit("XYZ"), STR_NULL) == N);
+	TEST(str_replace_chars(&s, Lit("XYZ"), str_null) == N);
 	TEST(str_len(s) == N);
 
 	for(size_t i = 0; i < str_len(s); ++i)
 		TEST(*(str_ptr(s) + i) == 'x');
 
-	str_repeat(&s, Lit("xX"), N);
+	str_assign(&s, Lit("xX"));
+	str_repeat(&s, N);
 
-	TEST(str_replace_chars(&s, Lit("xyz"), STR_NULL) == N);
+	TEST(str_replace_chars(&s, Lit("xyz"), str_null) == N);
 	TEST(str_len(s) == N);
 
 	for(size_t i = 0; i < str_len(s); ++i)
 		TEST(*(str_ptr(s) + i) == 'X');
 
-	str_repeat(&s, Lit("xX"), N);
+	str_assign(&s, Lit("xX"));
+	str_repeat(&s, N);
 
 	TEST(str_replace_chars(&s, Lit("xX"), Lit("z")) == 2 * N);
 	TEST(str_len(s) == 2 * N);
@@ -504,7 +510,8 @@ TEST_CASE(test_replace_chars) {
 	for(size_t i = 0; i < str_len(s); ++i)
 		TEST(*(str_ptr(s) + i) == 'z');
 
-	str_repeat(&s, Lit("xx"), N);
+	str_assign(&s, Lit("xx"));
+	str_repeat(&s, N);
 
 	TEST(str_replace_chars(&s, Lit("?"), Lit("z")) == 0);
 	TEST(str_len(s) == 2 * N);
@@ -514,25 +521,25 @@ TEST_CASE(test_replace_chars) {
 }
 
 TEST_CASE(test_replace_char_spans) {
-	str_auto s = STR_NULL;
+	str_auto s = str_null;
 
 	// corner cases
-	TEST(str_replace_char_spans(&s, STR_NULL, STR_NULL) == 0);
+	TEST(str_replace_char_spans(&s, str_null, str_null) == 0);
 	TEST(str_is_empty(s));
 	TEST(str_is_ref(s));
-	TEST(str_replace_char_spans(&s, Lit("xyz"), STR_NULL) == 0);
+	TEST(str_replace_char_spans(&s, Lit("xyz"), str_null) == 0);
 	TEST(str_is_empty(s));
 	TEST(str_is_ref(s));
-	TEST(str_replace_char_spans(&s, STR_NULL, Lit("xyz")) == 0);
+	TEST(str_replace_char_spans(&s, str_null, Lit("xyz")) == 0);
 	TEST(str_is_empty(s));
 	TEST(str_is_ref(s));
 
 	s = Lit("xyz");
 
-	TEST(str_replace_char_spans(&s, STR_NULL, STR_NULL) == 0);
+	TEST(str_replace_char_spans(&s, str_null, str_null) == 0);
 	TEST(str_eq(s, Lit("xyz")));
 	TEST(str_is_ref(s));
-	TEST(str_replace_char_spans(&s, STR_NULL, Lit("xyz")) == 0);
+	TEST(str_replace_char_spans(&s, str_null, Lit("xyz")) == 0);
 	TEST(str_eq(s, Lit("xyz")));
 	TEST(str_is_ref(s));
 
@@ -550,15 +557,17 @@ TEST_CASE(test_replace_char_spans) {
 	// big string
 	const size_t N = 10000;
 
-	str_repeat(&s, Lit(" x\t\n"), N);
+	str_assign(&s, Lit(" x\t\n"));
+	str_repeat(&s, N);
 
-	TEST(str_replace_char_spans(&s, Lit(" \t\r\n"), STR_NULL) == N + 1);
+	TEST(str_replace_char_spans(&s, Lit(" \t\r\n"), str_null) == N + 1);
 	TEST(str_len(s) == N);
 
 	for(size_t i = 0; i < str_len(s); ++i)
 		TEST(*(str_ptr(s) + i) == 'x');
 
-	str_repeat(&s, Lit(" x\t\n"), N);
+	str_assign(&s, Lit(" x\t\n"));
+	str_repeat(&s, N);
 
 	TEST(str_replace_char_spans(&s, Lit(" \t\r\n"), Lit("x")) == N + 1);
 	TEST(str_len(s) == 2 * N + 1);
@@ -568,7 +577,7 @@ TEST_CASE(test_replace_char_spans) {
 }
 
 TEST_CASE(test_count_codepoints) {
-	TEST(str_count_codepoints(STR_NULL) == 0);
+	TEST(str_count_codepoints(str_null) == 0);
 	TEST(str_count_codepoints(Lit("xyz")) == 3);
 	TEST(str_count_codepoints(Lit("xyz\xC2")) == 4);
 	TEST(str_count_codepoints(Lit(u8"жёлтый")) == 6);

@@ -33,6 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "mite/mite.h"
 #include "../str.h"
 
+#define Lit str_lit
+
 // status string
 static
 const char* status_str(uint32_t status) {
@@ -481,6 +483,63 @@ TEST_CASE(test_utf8_mixed_iteration) {
 	TESTF(error_count == 2, "Expected 2 errors, got %d", error_count);
 	TESTF(incomplete_count == 0, "Expected 0 incomplete, got %d", incomplete_count);
 	TESTF(pos == total_len, "Expected consumed all %zu bytes, consumed %zu", total_len, pos);
+}
+
+// codepoint counter ------------------------------------------------------------------------------
+TEST_CASE(test_count_codepoints) {
+	typedef struct {
+		str s;
+		size_t n;
+	} test_case;
+
+	static
+	const test_case test_cases[] = {
+		// valid sequences
+		{ str_null, 0 },
+		{ Lit("xyz"), 3 },
+		{ Lit("xyz\xC2"), 4 },
+		{ Lit(u8"жёлтый"), 6 },
+		{ Lit(u8"a猫🍌"), 3 },
+
+		// single invalid bytes
+		{ Lit("\x80"), 1 },  // lone continuation byte
+		{ Lit("\xFF"), 1 },  // invalid start byte
+		{ Lit("\xC0"), 1 },  // overlong 2-byte start (incomplete)
+		{ Lit("\xF5"), 1 },  // invalid 4-byte start
+
+		// invalid start bytes in stream
+		{ Lit("a\x80""b"), 3 },			// continuation in middle (split string)
+		{ Lit("\xC1\x80"), 2 },			// overlong encoding
+		{ Lit("\xF5\x80\x80\x80"), 4 },	// invalid 4-byte start
+
+		// truncated sequences (missing continuation bytes)
+		{ Lit("\xC2"), 1 },			// 2-byte start at end
+		{ Lit("\xE0\xA0"), 1 },		// 3-byte truncated
+		{ Lit("\xF0\x90\x80"), 1 },	// 4-byte truncated
+
+		// invalid continuation bytes
+		{ Lit("\xC2\xC0"), 2 },			// C0 not valid continuation
+		{ Lit("\xE0\x80\x41"), 3 },		// 3-byte with ASCII as 3rd byte
+		{ Lit("\xF0\x80\x80\x41"), 4 },	// 4-byte with ASCII as 4th byte
+
+		// maximal subpart examples
+		{ Lit("\xF1\x80\x80\x41"), 2 },	// F1 80 80 is subpart (3 bytes), then A
+		{ Lit("\xF1\x80\x41\x80"), 3 },	// F1 80 is subpart (2 bytes), then A, then lone 80
+		{ Lit("\xF1\x41\x80\x80"), 4 },	// F1 is subpart (1 byte), then A, then two lone 80s
+
+		// multiple errors in sequence
+		{ Lit("\xC0\x80\x80\x41"), 4 },	// each byte separate
+		{ Lit("\xE0\xC0\x41\x80"), 4 },	// E0 subpart, C0 subpart, A valid, 80 subpart
+		{ Lit("test\x80\xC0\xE0\x80""end"), 11 },
+	};
+
+	const test_case* const end = test_cases + sizeof(test_cases)/sizeof(test_cases[0]);
+
+	for(const test_case* p = test_cases; p < end; ++p) {
+		const size_t n = str_count_codepoints(p->s);
+
+		TESTF(n == p->n, "[%zu]: invalid number: %zu instead of %zu", p - test_cases, n, p->n);
+	}
 }
 
 // encoder test -----------------------------------------------------------------------------------

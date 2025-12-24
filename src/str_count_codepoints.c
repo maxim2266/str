@@ -41,7 +41,10 @@ size_t str_count_codepoints(const str s) {
 	while(r.num_bytes > 0) {
 		++count;
 
-		p += r.num_bytes;
+		p += (r.status != STR_UTF8_ERROR || r.num_bytes == 1)
+		   ? r.num_bytes
+		   : (r.num_bytes - 1);
+
 		r = str_decode_utf8(p, end - p);
 	}
 

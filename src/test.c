@@ -576,14 +576,6 @@ TEST_CASE(test_replace_char_spans) {
 		TEST(*(str_ptr(s) + i) == 'x');
 }
 
-TEST_CASE(test_count_codepoints) {
-	TEST(str_count_codepoints(str_null) == 0);
-	TEST(str_count_codepoints(Lit("xyz")) == 3);
-	TEST(str_count_codepoints(Lit("xyz\xC2")) == 4);
-	TEST(str_count_codepoints(Lit(u8"жёлтый")) == 6);
-	TEST(str_count_codepoints(Lit(u8"a猫🍌")) == 3);
-}
-
 static
 bool part_pred(const str s) {
 	return str_len(s) < 2;

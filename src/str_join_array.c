@@ -33,30 +33,30 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "str_impl.h"
 
 // join array of strings around a separator
-void str_join_array(str* const dest, const str sep, const str* src, size_t count) {
+void str_join_array(str* const dest, const str sep, const str* array, size_t count) {
 	// simple cases
 	if(str_is_empty(sep)) {
-		str_concat_array(dest, src, count);
+		str_concat_array(dest, array, count);
 		return;
 	}
 
-	if(!src || count == 0) {
+	if(!array || count == 0) {
 		str_clear(dest);
 		return;
 	}
 
 	if(count == 1) {
-		str_clone(dest, *src);
+		str_clone(dest, *array);
 		return;
 	}
 
 	// full join
-	const size_t n = calc_total_length(src, count) + str_len(sep) * (count - 1);
+	const size_t n = calc_total_length(array, count) + str_len(sep) * (count - 1);
 	char* const buff = mem_alloc(n + 1);
-	char* p = append_str(buff, *src++);
+	char* p = append_str(buff, *array++);
 
 	while(p < buff + n)
-		p = append_str(append_str(p, sep), *src++);
+		p = append_str(append_str(p, sep), *array++);
 
 	*p = 0;
 	str_assign(dest, str_acquire_mem(buff, n));

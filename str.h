@@ -213,7 +213,7 @@ bool str_sprintf(str* const dest, const char* const fmt, ...) __attribute__((for
 void str_clone(str* const dest, const str s);
 
 // concatenate array of strings
-void str_concat_array(str* const dest, const str* src, const size_t count);
+void str_concat_array(str* const dest, const str* array, const size_t count);
 
 // concatenate string arguments
 #define str_concat(dest, ...) ({	\
@@ -222,7 +222,7 @@ void str_concat_array(str* const dest, const str* src, const size_t count);
 })
 
 // join array of strings around a separator
-void str_join_array(str* const dest, const str sep, const str* src, size_t count);
+void str_join_array(str* const dest, const str sep, const str* array, size_t count);
 
 // join string arguments around a separator
 #define str_join(dest, sep, ...) ({	\

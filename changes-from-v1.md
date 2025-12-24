@@ -12,4 +12,5 @@ now gone, because I agree with people who found it cool but unnecessary;
 * Added character replacement functions;
 * Added basic _locale-independent_ UTF-8 support;
 * Iteration over Unicode codepoints can now be done using the provided `str_decode_utf8` function
-instead of a specialised macro.
+instead of a specialised macro;
+* The accomplishing tools are gone, as nobody seems to use them.

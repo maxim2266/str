@@ -3,7 +3,7 @@
 [![License: BSD 3 Clause](https://img.shields.io/badge/License-BSD_3--Clause-yellow.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 _Note_: This is version 2 of the library, v1 is now in maintenance mode, and is available in this
-repository under `v1` branch.
+repository under `v1` branch. The differences between v1 and v2 are summarised [here](changes-from-v1.md).
 
 ## Features
 
@@ -73,7 +73,7 @@ provides `str_null` for this purpose, along with several string constructors.
 
 Strings in this library are treated as immutable. They are not guaranteed to be null-terminated,
 though all strings allocated by the library or created from C string literals do contain a
-null terminator.
+null terminator, which is not counted towards the string length.
 
 Library functions take string parameters either by value (as `const str`) or via pointer
 (`str*`). Parameters passed by value are never modified; it is safe to pass owning objects this
@@ -97,35 +97,21 @@ for(const char* p = str_ptr(s); p < str_end(s); ++p) {
 }
 ```
 
-Both `str_ptr()` and `str_end()` guarantee non-null pointers, even for empty strings.
+Both `str_ptr()` and `str_end()` guarantee non-null pointers, even for empty strings, where
+`str_ptr(s) == str_end(s)`.
 
-### String Ownership Transfer
-```C
-str a = str_lit("reference");  // non-owning reference
-str b = str_null;              // empty string
+### String Ownership Management
+It is the user's responsibility to maintain the following:
+* **Initialization Contract**: All `str` instances must be initialized before use via constructors,
+`str_null`, or complete zeroing (for struct/array members)
+* **Single-Owner Invariant**: Every heap-allocated string buffer has exactly one owning `str`
+object at any point in program execution
+* **Transfer Discipline**: Ownership transfer occurs only through designated API functions;
+misuse risks double-frees or leaks
+* **Lifetime Bounds**: Non-owning references are invalidated when their referent is freed
 
-str_clone(&b, str_lit("xyz")); // `b` now owns malloc'd buffer with "xyz" string
-
-str_assign(&a, str_acquire(&b));  // transfer ownership from `b` to `a`
-
-assert(str_is_owner(a));
-assert(str_is_ref(b));
-assert(str_eq(a, b));
-
-str_assign(&a, str_lit("abc"));  // memory owned by `a` is free'd before assignment
-
-// `b` is now invalid (dangling reference), but it can be assigned to
-
-str_sprintf(&b, "user: %s", getenv("USER"));  // `b` now owns a new string
-
-str_free(b); // b's buffer freed
-```
-It is the user's responsibility to make sure that at any given point in time there is exactly
-one owner of any heap-allocated string, and all such strings are free'd when no longer needed.
-In practice it means that most of the code should be dealing with references, and ownership
-transfer should be performed only when absolutely necessary. It's actually less difficult to
-achieve than it may seem from the example above. Also, the good old C strings are still in the
-game, and they may (or should) be used where appropriate.
+And finally, the good old C strings are still in the game, and they may (or should) be used where
+appropriate.
 
 ## License
 BSD-3-Clause

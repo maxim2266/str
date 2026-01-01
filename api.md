@@ -319,16 +319,19 @@ Actual comparison functions for ascending and descending sort.<br><br>
 ```C
 void str_sort_array(const str_cmp_func cmp, const str* const array, const size_t count)
 ```
-Sorts the given array using the provided comparison function.<br><br>
+Sorts the given array using the provided comparison function. The strings within the array
+are only moved around, they are not modified in any way.<br><br>
 
 ```C
 size_t str_partition_array(bool (*pred)(const str), str* const array, const size_t count)
 ```
 Moves all strings matching the predicate towards the front of the array. Returns the number of
-matching strings.<br><br>
+matching strings. The strings within the array are only moved around, they are not not modified in
+any way.<br><br>
 
 ```C
 size_t str_unique_partition_array(str* const array, const size_t count)
 ```
 Moves all unique strings towards the front of the array. Returns the number of unique strings.
-Requires sorted array.<br><br>
+Requires sorted array. The strings within the array are only moved around, they are not not
+modified in any way.<br><br>

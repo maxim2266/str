@@ -2,6 +2,8 @@
 
 [![License: BSD 3 Clause](https://img.shields.io/badge/License-BSD_3--Clause-yellow.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
+_This version of the library is now in the maitenance mode, the newer version is on the `master` branch._
+
 ## Motivation
 
 Bored with developing the same functionality over and over again, unsatisfied

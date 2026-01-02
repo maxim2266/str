@@ -326,12 +326,12 @@ are only moved around, they are not modified in any way.<br><br>
 size_t str_partition_array(bool (*pred)(const str), str* const array, const size_t count)
 ```
 Moves all strings matching the predicate towards the front of the array. Returns the number of
-matching strings. The strings within the array are only moved around, they are not not modified in
+matching strings. The strings within the array are only moved around, they are not modified in
 any way.<br><br>
 
 ```C
 size_t str_unique_partition_array(str* const array, const size_t count)
 ```
 Moves all unique strings towards the front of the array. Returns the number of unique strings.
-Requires sorted array. The strings within the array are only moved around, they are not not
-modified in any way.<br><br>
+Requires sorted array. The strings within the array are only moved around, they are not modified
+in any way.<br><br>

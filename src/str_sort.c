@@ -37,5 +37,5 @@ int str_order_asc(const void* const s1, const void* const s2) {
 }
 
 int str_order_desc(const void* const s1, const void* const s2) {
-	return -str_cmp(*(const str*)s1, *(const str*)s2);
+	return -str_order_asc(s1, s2);
 }

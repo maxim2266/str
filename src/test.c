@@ -167,6 +167,31 @@ TEST_CASE(test_cmp) {
 	TEST(same_sign(strcmp("xxx", "xxxx"), str_cmp(Lit("xxx"), Lit("xxxx"))));
 }
 
+TEST_CASE(test_sort) {
+	str array[] = {
+		Lit("xxx"),
+		Lit("xxxx"),
+		Lit("aaa"),
+		Lit("bbb")
+	};
+
+	const size_t N = sizeof(array)/sizeof(array[0]);
+
+	str_sort_array(str_order_asc, array, N);
+
+	TEST(str_eq(array[0], Lit("aaa")));
+	TEST(str_eq(array[1], Lit("bbb")));
+	TEST(str_eq(array[2], Lit("xxx")));
+	TEST(str_eq(array[3], Lit("xxxx")));
+
+	str_sort_array(str_order_desc, array, N);
+
+	TEST(str_eq(array[3], Lit("aaa")));
+	TEST(str_eq(array[2], Lit("bbb")));
+	TEST(str_eq(array[1], Lit("xxx")));
+	TEST(str_eq(array[0], Lit("xxxx")));
+}
+
 TEST_CASE(test_prefix) {
 	const str s = Lit("xxx_yyy_zzz");
 

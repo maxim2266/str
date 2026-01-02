@@ -32,11 +32,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "str_impl.h"
 
-// alocate and assign a copy of the given string
+// allocate and assign a copy of the given string
 void str_clone(str* const dest, const str s) {
 	const size_t n = str_len(s);
 
-	return (n > 0)
-		 ? str_assign(dest, str_acquire_mem(mem_alloc_copy(s.ptr, n), n))
-		 : str_clear(dest);
+	if(n > 0)
+		str_assign(dest, str_acquire_mem(mem_alloc_copy(s.ptr, n), n));
+	else
+		str_clear(dest);
 }

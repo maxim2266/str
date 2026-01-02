@@ -49,6 +49,7 @@ $(LIB): $(OBJ)
 
 # header dependencies
 $(OBJ): str.h src/str_impl.h
+src/str_hash.o: src/rapidhash/rapidhash.h
 
 # testing
 TBIN := test-str
